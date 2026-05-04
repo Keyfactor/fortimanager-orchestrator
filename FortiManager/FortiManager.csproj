@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Copyright />
 		<PackageLicenseExpression>https://apache.org/licenses/LICENSE-2.0</PackageLicenseExpression>
 		<PackageLicenseFile></PackageLicenseFile>
 		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-		<AssemblyName>Keyfactor.Extensions.Orchestrators.MOST.dll</AssemblyName>
-		<RootNamespace>Keyfactor.Extensions.Orchestrators.SampleOrchestratorExtension</RootNamespace>
+		<AssemblyName>Keyfactor.Extensions.Orchestrators.FortiManager.dll</AssemblyName>
+		<RootNamespace>Keyfactor.Extensions.Orchestrators.FortiManager</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
