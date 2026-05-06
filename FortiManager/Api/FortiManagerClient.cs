@@ -103,6 +103,14 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager.Api
             };
 
             RpcResponse response = PostRpc(host, requestBody);
+
+            if (response.Result != null && response.Result.Count > 0 &&
+                response.Result[0].Status?.Code == -6)
+            {
+                _logger.LogDebug("FortiManagerClient.GetCertificates: no certificates found (object not found), returning empty list");
+                return new List<LocalCertificate>();
+            }
+
             ThrowIfError(response, url);
 
             if (response.Result == null || response.Result.Count == 0)
