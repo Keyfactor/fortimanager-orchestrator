@@ -65,7 +65,7 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
                     JobHistoryId = config.JobHistoryId,
-                    FailureMessage = $"{config.OperationType} failed for alias '{config.JobCertificate?.Alias}' on device '{device}' (FortiManager: '{host}', ADOM: '{adom}'): {FlattenException(ex)}"
+                    FailureMessage = $"{config.OperationType} failed for alias '{config.JobCertificate?.Alias}' on device '{device}' (FortiManager: '{host}', ADOM: '{adom}'): {ExceptionHandler.FlattenException(ex)}"
                 };
             }
             finally
@@ -185,18 +185,5 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
             return device;
         }
 
-        private static string FlattenException(Exception ex)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            Exception current = ex;
-            while (current != null)
-            {
-                if (sb.Length > 0)
-                    sb.Append(" --> ");
-                sb.Append(current.Message);
-                current = current.InnerException;
-            }
-            return sb.ToString();
-        }
     }
 }

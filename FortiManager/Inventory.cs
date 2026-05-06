@@ -74,7 +74,7 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
                     JobHistoryId = config.JobHistoryId,
-                    FailureMessage = $"Inventory failed for device '{device}' on FortiManager '{host}' (ADOM: '{adom}'): {FlattenException(ex)}"
+                    FailureMessage = $"Inventory failed for device '{device}' on FortiManager '{host}' (ADOM: '{adom}'): {ExceptionHandler.FlattenException(ex)}"
                 };
             }
             finally
@@ -101,7 +101,7 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
                     JobHistoryId = config.JobHistoryId,
-                    FailureMessage = $"Inventory retrieved {inventoryItems.Count} certificate(s) but failed to submit to Command: {FlattenException(ex)}"
+                    FailureMessage = $"Inventory retrieved {inventoryItems.Count} certificate(s) but failed to submit to Command: {ExceptionHandler.FlattenException(ex)}"
                 };
             }
         }
@@ -134,18 +134,5 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
             return Convert.ToBase64String(derBytes);
         }
 
-        private static string FlattenException(Exception ex)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            Exception current = ex;
-            while (current != null)
-            {
-                if (sb.Length > 0)
-                    sb.Append(" --> ");
-                sb.Append(current.Message);
-                current = current.InnerException;
-            }
-            return sb.ToString();
-        }
     }
 }
