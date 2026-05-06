@@ -56,7 +56,7 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                         {
                             Alias = cert.Name,
                             Certificates = new string[] { base64Cert },
-                            PrivateKeyEntry = !string.IsNullOrEmpty(cert.PrivateKey),
+                            PrivateKeyEntry = !cert.CertInfo.IsCa,
                             UseChainLevel = false,
                             ItemStatus = OrchestratorInventoryItemStatus.Unknown
                         };
