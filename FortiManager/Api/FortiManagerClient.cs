@@ -113,9 +113,6 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager.Api
 
             ThrowIfError(response, url);
 
-            if (response.Result == null || response.Result.Count == 0)
-                return new List<LocalCertificate>();
-
             RpcResult result = response.Result[0];
 
             if (result.Data.ValueKind == System.Text.Json.JsonValueKind.Null ||
