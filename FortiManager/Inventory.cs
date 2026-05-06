@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 
 using Keyfactor.Extensions.Orchestrators.FortiManager.Api;
 using Keyfactor.Logging;
@@ -15,24 +14,28 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
     {
         public string ExtensionName => "";
 
+        private ILogger _logger;
+
         public JobResult ProcessJob(InventoryJobConfiguration config, SubmitInventoryUpdate submitInventory)
         {
-            ILogger logger = LogHandler.GetClassLogger(this.GetType());
-            logger.LogDebug("Inventory.ProcessJob: begin");
+            _logger = LogHandler.GetClassLogger(this.GetType());
+            _logger.LogDebug("Inventory.ProcessJob: begin");
 
             string host = config.CertificateStoreDetails.ClientMachine;
             string adom = config.CertificateStoreDetails.StorePath;
-            string device = GetDeviceFromProperties(config.CertificateStoreDetails.Properties, logger);
             string username = config.ServerUsername;
             string password = config.ServerPassword;
+            string device = string.Empty;
 
-            FortiManagerClient client = new FortiManagerClient(logger);
+            FortiManagerClient client = new FortiManagerClient(_logger);
             string session = string.Empty;
 
             List<CurrentInventoryItem> inventoryItems = new List<CurrentInventoryItem>();
 
             try
             {
+                device = ExceptionHandler.GetDeviceFromProperties(config.CertificateStoreDetails.Properties, _logger);
+
                 session = client.Login(host, username, password);
 
                 List<LocalCertificate> certificates = client.GetCertificates(host, session, device, adom);
@@ -41,7 +44,7 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                 {
                     if (string.IsNullOrEmpty(cert.Certificate))
                     {
-                        logger.LogDebug($"Inventory.ProcessJob: skipping '{cert.Name}' — no certificate data");
+                        _logger.LogDebug($"Inventory.ProcessJob: skipping '{cert.Name}' — no certificate data");
                         continue;
                     }
 
@@ -59,17 +62,17 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                         };
 
                         inventoryItems.Add(inventoryItem);
-                        logger.LogDebug($"Inventory.ProcessJob: added '{cert.Name}' to inventory");
+                        _logger.LogDebug($"Inventory.ProcessJob: added '{cert.Name}' to inventory");
                     }
                     catch (Exception ex)
                     {
-                        logger.LogWarning(ex, $"Inventory.ProcessJob: failed to process certificate '{cert.Name}', skipping");
+                        _logger.LogWarning(ex, $"Inventory.ProcessJob: failed to process certificate '{cert.Name}', skipping");
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Inventory.ProcessJob: fatal error during inventory");
+                _logger.LogError(ex, "Inventory.ProcessJob: fatal error during inventory");
                 return new JobResult
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
@@ -82,7 +85,7 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                 if (!string.IsNullOrEmpty(session))
                     client.Logout(host, session);
 
-                logger.LogDebug("Inventory.ProcessJob: end");
+                _logger.LogDebug("Inventory.ProcessJob: end");
             }
 
             try
@@ -96,7 +99,7 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Inventory.ProcessJob: error submitting inventory to Keyfactor Command");
+                _logger.LogError(ex, "Inventory.ProcessJob: error submitting inventory to Keyfactor Command");
                 return new JobResult
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
@@ -106,23 +109,10 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
             }
         }
 
-        private static string GetDeviceFromProperties(string propertiesJson, ILogger logger)
+        private string ConvertPemToBase64Der(string pem)
         {
-            if (string.IsNullOrEmpty(propertiesJson))
-                throw new ApplicationException("Store properties are missing — 'Device' is required.");
+            _logger.LogDebug("Inventory.ConvertPemToBase64Der: begin");
 
-            Dictionary<string, string> properties = JsonSerializer.Deserialize<Dictionary<string, string>>(propertiesJson)
-                ?? throw new ApplicationException("Store properties could not be parsed.");
-
-            if (!properties.TryGetValue("Device", out string device) || string.IsNullOrEmpty(device))
-                throw new ApplicationException("Store property 'Device' is required but was not provided.");
-
-            logger.LogDebug($"Inventory.GetDeviceFromProperties: device = '{device}'");
-            return device;
-        }
-
-        private static string ConvertPemToBase64Der(string pem)
-        {
             string stripped = pem
                 .Replace("-----BEGIN CERTIFICATE-----", string.Empty)
                 .Replace("-----END CERTIFICATE-----", string.Empty)
@@ -131,8 +121,9 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager
                 .Trim();
 
             byte[] derBytes = Convert.FromBase64String(stripped);
+
+            _logger.LogDebug("Inventory.ConvertPemToBase64Der: end");
             return Convert.ToBase64String(derBytes);
         }
-
     }
 }
