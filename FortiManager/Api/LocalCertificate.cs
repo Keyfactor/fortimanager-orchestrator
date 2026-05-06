@@ -10,13 +10,13 @@ namespace Keyfactor.Extensions.Orchestrators.FortiManager.Api
         [JsonPropertyName("certificate")]
         public string Certificate { get; set; }
 
-        [JsonPropertyName("private-key")]
-        public string PrivateKey { get; set; }
+        [JsonPropertyName("_certinfo")]
+        public CertInfo CertInfo { get; set; }
+    }
 
-        [JsonPropertyName("comment")]
-        public string Comment { get; set; }
-
-        [JsonPropertyName("status")]
-        public string Status { get; set; }
+    public class CertInfo
+    {
+        [JsonPropertyName("is_ca")]
+        public bool IsCa { get; set; }
     }
 }
