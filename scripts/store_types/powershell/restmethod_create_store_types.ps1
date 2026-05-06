@@ -69,7 +69,7 @@ New-StoreType "FortiManager" @'
   "Name": "FortiManager",
   "ShortName": "FortiManager",
   "Capability": "FortiManager",
-  "PrivateKeyAllowed": "Required",
+  "PrivateKeyAllowed": "Optional",
   "ServerRequired": true,
   "PowerShell": false,
   "BlueprintAllowed": false,
