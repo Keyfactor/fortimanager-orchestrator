@@ -1,80 +1,202 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.Json;
 
+using Keyfactor.Extensions.Orchestrators.FortiManager.Api;
 using Keyfactor.Logging;
-using Keyfactor.Orchestrators.Extensions;
 using Keyfactor.Orchestrators.Common.Enums;
+using Keyfactor.Orchestrators.Extensions;
 
 using Microsoft.Extensions.Logging;
 
-namespace Keyfactor.Extensions.Orchestrator.SampleOrchestratorExtension
+using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
+
+namespace Keyfactor.Extensions.Orchestrators.FortiManager
 {
     public class Management : IManagementJobExtension
     {
-        //Necessary to implement IManagementJobExtension but not used.  Leave as empty string.
         public string ExtensionName => "";
 
-        //Job Entry Point
         public JobResult ProcessJob(ManagementJobConfiguration config)
         {
-            //METHOD ARGUMENTS...
-            //config - contains context information passed from KF Command to this job run:
-            //
-            // config.Server.Username, config.Server.Password - credentials for orchestrated server - use to authenticate to certificate store server.
-            //
-            // config.ServerUsername, config.ServerPassword - credentials for orchestrated server - use to authenticate to certificate store server.
-            // config.CertificateStoreDetails.ClientMachine - server name or IP address of orchestrated server
-            // config.CertificateStoreDetails.StorePath - location path of certificate store on orchestrated server
-            // config.CertificateStoreDetails.StorePassword - if the certificate store has a password, it would be passed here
-            // config.CertificateStoreDetails.Properties - JSON string containing custom store properties for this specific store type
-            //
-            // config.JobCertificate.EntryContents - Base64 encoded string representation (PKCS12 if private key is included, DER if not) of the certificate to add for Management-Add jobs.
-            // config.JobCertificate.Alias - optional string value of certificate alias (used in java keystores and some other store types)
-            // config.OpeerationType - enumeration representing function with job type.  Used only with Management jobs where this value determines whether the Management job is a CREATE/ADD/REMOVE job.
-            // config.Overwrite - Boolean value telling the Orchestrator Extension whether to overwrite an existing certificate in a store.  How you determine whether a certificate is "the same" as the one provided is AnyAgent implementation dependent
-            // config.JobCertificate.PrivateKeyPassword - For a Management Add job, if the certificate being added includes the private key (therefore, a pfx is passed in config.JobCertificate.EntryContents), this will be the password for the pfx.
-
-
-            //NLog Logging to c:\CMS\Logs\CMS_Agent_Log.txt
             ILogger logger = LogHandler.GetClassLogger(this.GetType());
-            logger.LogDebug($"Begin Management...");
+            logger.LogDebug("Management.ProcessJob: begin");
+
+            string host = config.CertificateStoreDetails.ClientMachine;
+            string adom = config.CertificateStoreDetails.StorePath;
+            string device = GetDeviceFromProperties(config.CertificateStoreDetails.Properties, logger);
+            string username = config.ServerUsername;
+            string password = config.ServerPassword;
+
+            FortiManagerClient client = new FortiManagerClient(logger);
+            string session = string.Empty;
 
             try
             {
-                //Management jobs, unlike Discovery, Inventory, and Reenrollment jobs can have 3 different purposes:
+                session = client.Login(host, username, password);
+
                 switch (config.OperationType)
                 {
                     case CertStoreOperationType.Add:
-                        //OperationType == Add - Add a certificate to the certificate store passed in the config object
-                        //Code logic to:
-                        // 1) Connect to the orchestrated server (config.CertificateStoreDetails.ClientMachine) containing the certificate store
-                        // 2) Custom logic to add certificate to certificate store (config.CertificateStoreDetails.StorePath) possibly using alias as an identifier if applicable (config.JobCertificate.Alias).  Use alias and overwrite flag (config.Overwrite)
-                        //     to determine if job should overwrite an existing certificate in the store, for example a renewal.
+                        PerformAdd(config, client, host, session, device, adom, logger);
                         break;
+
                     case CertStoreOperationType.Remove:
-                        //OperationType == Remove - Delete a certificate from the certificate store passed in the config object
-                        //Code logic to:
-                        // 1) Connect to the orchestrated server (config.CertificateStoreDetails.ClientMachine) containing the certificate store
-                        // 2) Custom logic to remove the certificate in a certificate store (config.CertificateStoreDetails.StorePath), possibly using alias (config.JobCertificate.Alias) or certificate thumbprint to identify the certificate (implementation dependent)
+                        PerformRemove(config, client, host, session, device, adom, logger);
                         break;
-                    case CertStoreOperationType.Create:
-                        //OperationType == Create - Create an empty certificate store in the provided location
-                        //Code logic to:
-                        // 1) Connect to the orchestrated server (config.CertificateStoreDetails.ClientMachine) where the certificate store (config.CertificateStoreDetails.StorePath) will be located
-                        // 2) Custom logic to first check if the store already exists and add it if not.  If it already exists, implementation dependent as to how to handle - error, warning, success
-                        break;
+
                     default:
-                        //Invalid OperationType.  Return error.  Should never happen though
-                        return new JobResult() { Result = Keyfactor.Orchestrators.Common.Enums.OrchestratorJobStatusJobResult.Failure, JobHistoryId = config.JobHistoryId, FailureMessage = $"Site {config.CertificateStoreDetails.StorePath} on server {config.CertificateStoreDetails.ClientMachine}: Unsupported operation: {config.OperationType.ToString()}" };
+                        return new JobResult
+                        {
+                            Result = OrchestratorJobStatusJobResult.Failure,
+                            JobHistoryId = config.JobHistoryId,
+                            FailureMessage = $"Unsupported operation type: {config.OperationType}"
+                        };
                 }
             }
             catch (Exception ex)
             {
-                //Status: 2=Success, 3=Warning, 4=Error
-                return new JobResult() { Result = Keyfactor.Orchestrators.Common.Enums.OrchestratorJobStatusJobResult.Failure, JobHistoryId = config.JobHistoryId, FailureMessage = "Custom message you want to show to show up as the error message in Job History in KF Command" };
+                logger.LogError(ex, $"Management.ProcessJob: error during {config.OperationType} for alias '{config.JobCertificate?.Alias}'");
+                return new JobResult
+                {
+                    Result = OrchestratorJobStatusJobResult.Failure,
+                    JobHistoryId = config.JobHistoryId,
+                    FailureMessage = $"{config.OperationType} failed for alias '{config.JobCertificate?.Alias}' on device '{device}' (FortiManager: '{host}', ADOM: '{adom}'): {FlattenException(ex)}"
+                };
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(session))
+                    client.Logout(host, session);
+
+                logger.LogDebug("Management.ProcessJob: end");
             }
 
-            //Status: 2=Success, 3=Warning, 4=Error
-            return new JobResult() { Result = Keyfactor.Orchestrators.Common.Enums.OrchestratorJobStatusJobResult.Success, JobHistoryId = config.JobHistoryId };
+            return new JobResult
+            {
+                Result = OrchestratorJobStatusJobResult.Success,
+                JobHistoryId = config.JobHistoryId
+            };
+        }
+
+        private static void PerformAdd(ManagementJobConfiguration config, FortiManagerClient client,
+            string host, string session, string device, string adom, ILogger logger)
+        {
+            string alias = config.JobCertificate.Alias;
+            logger.LogDebug($"Management.PerformAdd: alias='{alias}', overwrite={config.Overwrite}");
+
+            byte[] pfxBytes = Convert.FromBase64String(config.JobCertificate.Contents);
+            string pfxPassword = config.JobCertificate.PrivateKeyPassword ?? string.Empty;
+
+            ExtractPemParts(pfxBytes, pfxPassword, out string certPem, out string keyPem);
+
+            if (config.Overwrite)
+            {
+                List<LocalCertificate> existing = client.GetCertificates(host, session, device, adom);
+                bool aliasExists = existing.Exists(c =>
+                    string.Equals(c.Name, alias, StringComparison.OrdinalIgnoreCase));
+
+                if (aliasExists)
+                {
+                    logger.LogDebug($"Management.PerformAdd: alias '{alias}' exists, updating");
+                    client.UpdateCertificate(host, session, device, adom, alias, certPem, keyPem);
+                    return;
+                }
+            }
+
+            logger.LogDebug($"Management.PerformAdd: adding new certificate '{alias}'");
+            client.AddCertificate(host, session, device, adom, alias, certPem, keyPem);
+        }
+
+        private static void PerformRemove(ManagementJobConfiguration config, FortiManagerClient client,
+            string host, string session, string device, string adom, ILogger logger)
+        {
+            string alias = config.JobCertificate.Alias;
+            logger.LogDebug($"Management.PerformRemove: alias='{alias}'");
+
+            client.DeleteCertificate(host, session, device, adom, alias);
+        }
+
+        private static void ExtractPemParts(byte[] pfxBytes, string pfxPassword,
+            out string certPem, out string keyPem)
+        {
+            Pkcs12StoreBuilder builder = new Pkcs12StoreBuilder();
+            Pkcs12Store store = builder.Build();
+
+            using (MemoryStream ms = new MemoryStream(pfxBytes))
+            {
+                store.Load(ms, pfxPassword.ToCharArray());
+            }
+
+            string alias = null;
+            foreach (string entryAlias in store.Aliases)
+            {
+                if (store.IsKeyEntry(entryAlias))
+                {
+                    alias = entryAlias;
+                    break;
+                }
+            }
+
+            if (alias == null)
+                throw new ApplicationException("No key entry found in the provided PFX.");
+
+            X509CertificateEntry certEntry = store.GetCertificate(alias);
+            AsymmetricKeyEntry keyEntry = store.GetKey(alias);
+
+            if (certEntry == null)
+                throw new ApplicationException("No certificate found in the provided PFX.");
+            if (keyEntry == null)
+                throw new ApplicationException("No private key found in the provided PFX.");
+
+            using (StringWriter certWriter = new StringWriter())
+            {
+                PemWriter pemWriter = new PemWriter(certWriter);
+                pemWriter.WriteObject(certEntry.Certificate);
+                pemWriter.Writer.Flush();
+                certPem = certWriter.ToString();
+            }
+
+            using (StringWriter keyWriter = new StringWriter())
+            {
+                PemWriter pemWriter = new PemWriter(keyWriter);
+                pemWriter.WriteObject(keyEntry.Key);
+                pemWriter.Writer.Flush();
+                keyPem = keyWriter.ToString();
+            }
+        }
+
+        private static string GetDeviceFromProperties(string propertiesJson, ILogger logger)
+        {
+            if (string.IsNullOrEmpty(propertiesJson))
+                throw new ApplicationException("Store properties are missing — 'Device' is required.");
+
+            Dictionary<string, string> properties = JsonSerializer.Deserialize<Dictionary<string, string>>(propertiesJson)
+                ?? throw new ApplicationException("Store properties could not be parsed.");
+
+            if (!properties.TryGetValue("Device", out string device) || string.IsNullOrEmpty(device))
+                throw new ApplicationException("Store property 'Device' is required but was not provided.");
+
+            logger.LogDebug($"Management.GetDeviceFromProperties: device = '{device}'");
+            return device;
+        }
+
+        private static string FlattenException(Exception ex)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            Exception current = ex;
+            while (current != null)
+            {
+                if (sb.Length > 0)
+                    sb.Append(" --> ");
+                sb.Append(current.Message);
+                current = current.InnerException;
+            }
+            return sb.ToString();
         }
     }
 }
