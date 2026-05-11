@@ -131,7 +131,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
         private string ConvertPemToBase64Der(string pem)
         {
-            _logger.LogDebug("Inventory.ConvertPemToBase64Der: begin");
+            _logger.MethodEntry(LogLevel.Debug);
 
             string stripped = pem
                 .Replace("-----BEGIN CERTIFICATE-----", string.Empty)
@@ -142,7 +142,8 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             byte[] derBytes = Convert.FromBase64String(stripped);
 
-            _logger.LogDebug("Inventory.ConvertPemToBase64Der: end");
+            _logger.MethodExit(LogLevel.Debug);
+
             return Convert.ToBase64String(derBytes);
         }
     }

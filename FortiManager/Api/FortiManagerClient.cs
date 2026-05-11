@@ -11,14 +11,14 @@
 //See the License for the specific language governing permissions and
 //limitations under the License.
 
+using Keyfactor.Logging;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
-using Microsoft.Extensions.Logging;
 
 namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
 {
@@ -35,6 +35,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
         public FortiManagerClient(ILogger logger)
         {
             _logger = logger;
+            _logger.MethodEntry(LogLevel.Debug);
 
             HttpClientHandler handler = new HttpClientHandler
             {
@@ -42,10 +43,13 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             };
 
             _httpClient = new HttpClient(handler);
+
+            _logger.MethodExit(LogLevel.Debug);
         }
 
         public string Login(string host, string user, string password)
         {
+            _logger.MethodEntry(LogLevel.Debug);
             _logger.LogDebug($"FortiManagerClient.Login: connecting to {host}");
 
             object requestBody = new
@@ -70,12 +74,13 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             if (string.IsNullOrEmpty(session))
                 throw new ApplicationException($"FortiManager login to {host} succeeded but returned no session token.");
 
-            _logger.LogDebug("FortiManagerClient.Login: session obtained");
+            _logger.MethodExit(LogLevel.Debug);
             return session;
         }
 
         public void Logout(string host, string session)
         {
+            _logger.MethodEntry(LogLevel.Debug);
             _logger.LogDebug($"FortiManagerClient.Logout: closing session on {host}");
 
             try
@@ -97,10 +102,16 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             {
                 _logger.LogWarning(ex, "FortiManagerClient.Logout: non-fatal error closing session");
             }
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
         }
 
         public List<LocalCertificate> GetCertificates(string host, string session, string device, string adom)
         {
+            _logger.MethodEntry(LogLevel.Debug);
+
             string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local";
             _logger.LogDebug($"FortiManagerClient.GetCertificates: {url}");
 
@@ -115,33 +126,42 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
                 id = 2
             };
 
-            RpcResponse response = PostRpc(host, requestBody);
-
-            if (response.Result != null && response.Result.Count > 0 &&
-                response.Result[0].Status?.Code == -6)
+            try
             {
-                _logger.LogDebug("FortiManagerClient.GetCertificates: no certificates found (object not found), returning empty list");
-                return new List<LocalCertificate>();
+                RpcResponse response = PostRpc(host, requestBody);
+
+                if (response.Result != null && response.Result.Count > 0 &&
+                    response.Result[0].Status?.Code == -6)
+                {
+                    _logger.LogDebug("FortiManagerClient.GetCertificates: no certificates found (object not found), returning empty list");
+                    return new List<LocalCertificate>();
+                }
+
+                ThrowIfError(response, url);
+
+                RpcResult result = response.Result[0];
+
+                if (result.Data.ValueKind == System.Text.Json.JsonValueKind.Null ||
+                    result.Data.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                    return new List<LocalCertificate>();
+
+                List<LocalCertificate> certs = JsonSerializer.Deserialize<List<LocalCertificate>>(
+                    result.Data.GetRawText(), JsonOptions) ?? new List<LocalCertificate>();
+
+                _logger.LogDebug($"FortiManagerClient.GetCertificates: retrieved {certs.Count} certificate(s)");
+                return certs;
             }
-
-            ThrowIfError(response, url);
-
-            RpcResult result = response.Result[0];
-
-            if (result.Data.ValueKind == System.Text.Json.JsonValueKind.Null ||
-                result.Data.ValueKind == System.Text.Json.JsonValueKind.Undefined)
-                return new List<LocalCertificate>();
-
-            List<LocalCertificate> certs = JsonSerializer.Deserialize<List<LocalCertificate>>(
-                result.Data.GetRawText(), JsonOptions) ?? new List<LocalCertificate>();
-
-            _logger.LogDebug($"FortiManagerClient.GetCertificates: retrieved {certs.Count} certificate(s)");
-            return certs;
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
         }
 
         public void AddCertificate(string host, string session, string device, string adom,
             string name, string certPem, string keyPem)
         {
+            _logger.MethodEntry(LogLevel.Debug);
+
             string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local";
             _logger.LogDebug($"FortiManagerClient.AddCertificate: adding '{name}' via {url}");
 
@@ -165,15 +185,24 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
                 id = 3
             };
 
-            RpcResponse response = PostRpc(host, requestBody);
-            ThrowIfError(response, url);
+            try
+            {
+                RpcResponse response = PostRpc(host, requestBody);
+                ThrowIfError(response, url);
 
-            _logger.LogDebug($"FortiManagerClient.AddCertificate: '{name}' added successfully");
+                _logger.LogDebug($"FortiManagerClient.AddCertificate: '{name}' added successfully");
+            }
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
         }
 
         public void UpdateCertificate(string host, string session, string device, string adom,
             string name, string certPem, string keyPem)
         {
+            _logger.MethodEntry(LogLevel.Debug);
+
             string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local/{name}";
             _logger.LogDebug($"FortiManagerClient.UpdateCertificate: updating '{name}' via {url}");
 
@@ -196,14 +225,23 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
                 id = 4
             };
 
-            RpcResponse response = PostRpc(host, requestBody);
-            ThrowIfError(response, url);
+            try
+            {
+                RpcResponse response = PostRpc(host, requestBody);
+                ThrowIfError(response, url);
 
-            _logger.LogDebug($"FortiManagerClient.UpdateCertificate: '{name}' updated successfully");
+                _logger.LogDebug($"FortiManagerClient.UpdateCertificate: '{name}' updated successfully");
+            }
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
         }
 
         public void DeleteCertificate(string host, string session, string device, string adom, string name)
         {
+            _logger.MethodEntry(LogLevel.Debug);
+
             string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local/{name}";
             _logger.LogDebug($"FortiManagerClient.DeleteCertificate: deleting '{name}' via {url}");
 
@@ -218,14 +256,23 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
                 id = 5
             };
 
-            RpcResponse response = PostRpc(host, requestBody);
-            ThrowIfError(response, url);
+            try
+            {
+                RpcResponse response = PostRpc(host, requestBody);
+                ThrowIfError(response, url);
 
-            _logger.LogDebug($"FortiManagerClient.DeleteCertificate: '{name}' deleted successfully");
+                _logger.LogDebug($"FortiManagerClient.DeleteCertificate: '{name}' deleted successfully");
+            }
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
         }
 
         private RpcResponse PostRpc(string host, object requestBody)
         {
+            _logger.MethodEntry(LogLevel.Debug);
+
             string endpoint = $"https://{host}/jsonrpc";
             string json = JsonSerializer.Serialize(requestBody, JsonOptions);
 
@@ -234,16 +281,23 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
 
-            HttpResponseMessage httpResponse = _httpClient.Send(request);
-            httpResponse.EnsureSuccessStatusCode();
+            try
+            {
+                HttpResponseMessage httpResponse = _httpClient.Send(request);
+                httpResponse.EnsureSuccessStatusCode();
 
-            string responseBody = httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            RpcResponse rpcResponse = JsonSerializer.Deserialize<RpcResponse>(responseBody, JsonOptions);
+                string responseBody = httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                RpcResponse rpcResponse = JsonSerializer.Deserialize<RpcResponse>(responseBody, JsonOptions);
 
-            if (rpcResponse == null)
-                throw new ApplicationException($"FortiManager returned an empty or unparseable response from {endpoint}");
+                if (rpcResponse == null)
+                    throw new ApplicationException($"FortiManager returned an empty or unparseable response from {endpoint}");
 
-            return rpcResponse;
+                return rpcResponse;
+            }
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
         }
 
         private static void ThrowIfError(RpcResponse response, string url)
