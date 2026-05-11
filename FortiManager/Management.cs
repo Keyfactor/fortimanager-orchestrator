@@ -100,6 +100,8 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
         private void PerformAdd(ManagementJobConfiguration config, FortiManagerClient client,
             string host, string session, string device, string adom)
         {
+            _logger.MethodEntry(LogLevel.Debug);
+
             string alias = config.JobCertificate.Alias;
             _logger.LogDebug($"Management.PerformAdd: begin, alias='{alias}', overwrite={config.Overwrite}");
 
@@ -125,24 +127,27 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             _logger.LogDebug($"Management.PerformAdd: adding new certificate '{alias}'");
             client.AddCertificate(host, session, device, adom, alias, certPem, keyPem);
-            _logger.LogDebug("Management.PerformAdd: end");
+            
+            _logger.MethodExit(LogLevel.Debug);
         }
 
         private void PerformRemove(ManagementJobConfiguration config, FortiManagerClient client,
             string host, string session, string device, string adom)
         {
+            _logger.MethodEntry(LogLevel.Debug);
+
             string alias = config.JobCertificate.Alias;
             _logger.LogDebug($"Management.PerformRemove: begin, alias='{alias}'");
 
             client.DeleteCertificate(host, session, device, adom, alias);
 
-            _logger.LogDebug("Management.PerformRemove: end");
+            _logger.MethodExit(LogLevel.Debug);
         }
 
         private void ExtractPemParts(byte[] pfxBytes, string pfxPassword,
             out string certPem, out string keyPem)
         {
-            _logger.LogDebug("Management.ExtractPemParts: begin");
+            _logger.MethodEntry(LogLevel.Debug);
 
             Pkcs12StoreBuilder builder = new Pkcs12StoreBuilder();
             Pkcs12Store store = builder.Build();
@@ -189,7 +194,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                 keyPem = keyWriter.ToString();
             }
 
-            _logger.LogDebug("Management.ExtractPemParts: end");
+            _logger.MethodExit(LogLevel.Debug);
         }
     }
 }

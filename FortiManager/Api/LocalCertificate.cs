@@ -30,6 +30,8 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
     public class CertInfo
     {
         [JsonPropertyName("is_ca")]
-        public bool IsCa { get; set; }
+        public int IsCaNum { get; set; }
+
+        public bool IsCa => IsCaNum != 0;
     }
 }
