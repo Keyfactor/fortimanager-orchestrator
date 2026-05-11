@@ -5,7 +5,7 @@ using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
 
-namespace Keyfactor.Extensions.Orchestrators.FortiManager
+namespace Keyfactor.Extensions.Orchestrator.FortiManager
 {
     internal static class ExceptionHandler
     {
