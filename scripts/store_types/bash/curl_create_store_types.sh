@@ -94,7 +94,7 @@ create_store_type "FortiManager" '{
       "DisplayName": "Device",
       "Type": "String",
       "DependsOn": "",
-      "DefaultValue": "",
+      "DefaultValue": "ValueRequired",
       "IsPAMEligible": false,
       "Required": true
     },
