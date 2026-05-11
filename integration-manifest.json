@@ -37,7 +37,7 @@
               "DisplayName": "Device",
               "Type": "String",
               "DependsOn": "",
-              "DefaultValue": "",
+              "DefaultValue": "ValueRequired",
               "IsPAMEligible": false,
               "Required": true,
               "Description": "Fortigate device name being managed by this FortiManager instance"

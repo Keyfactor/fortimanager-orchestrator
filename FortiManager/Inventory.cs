@@ -1,30 +1,50 @@
-using System;
-using System.Collections.Generic;
+//Copyright 2026 Keyfactor
+//Licensed under the Apache License, Version 2.0 (the "License");
+//you may not use this file except in compliance with the License.
+//You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//Unless required by applicable law or agreed to in writing, software
+//distributed under the License is distributed on an "AS IS" BASIS,
+//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//See the License for the specific language governing permissions and
+//limitations under the License.
 
-using Keyfactor.Extensions.Orchestrators.FortiManager.Api;
+using Keyfactor.Extensions.Orchestrator.FortiManager.Api;
 using Keyfactor.Logging;
 using Keyfactor.Orchestrators.Common.Enums;
 using Keyfactor.Orchestrators.Extensions;
-
+using Keyfactor.Orchestrators.Extensions.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 
-namespace Keyfactor.Extensions.Orchestrators.FortiManager
+namespace Keyfactor.Extensions.Orchestrator.FortiManager
 {
     public class Inventory : IInventoryJobExtension
     {
+        public IPAMSecretResolver _resolver;
         public string ExtensionName => "";
 
         private ILogger _logger;
 
+        public Inventory(IPAMSecretResolver resolver)
+        {
+            _resolver = resolver;
+        }
+
         public JobResult ProcessJob(InventoryJobConfiguration config, SubmitInventoryUpdate submitInventory)
         {
             _logger = LogHandler.GetClassLogger(this.GetType());
-            _logger.LogDebug("Inventory.ProcessJob: begin");
+            _logger.LogDebug($"Begin {config.Capability} for job id {config.JobId}...");
+            _logger.LogDebug($"Client Machine: {config.CertificateStoreDetails.ClientMachine}");
+            _logger.LogDebug($"Store Path: {config.CertificateStoreDetails.StorePath}");
 
             string host = config.CertificateStoreDetails.ClientMachine;
             string adom = config.CertificateStoreDetails.StorePath;
-            string username = config.ServerUsername;
-            string password = config.ServerPassword;
+            string username = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager UserId", config.ServerUsername);
+            string password = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager User Password", config.ServerPassword);
             string device = string.Empty;
 
             FortiManagerClient client = new FortiManagerClient(_logger);

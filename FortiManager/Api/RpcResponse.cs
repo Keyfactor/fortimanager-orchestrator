@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Keyfactor.Extensions.Orchestrators.FortiManager.Api
+namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
 {
     public class RpcResponse
     {
