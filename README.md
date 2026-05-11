@@ -150,7 +150,7 @@ the Keyfactor Command Portal
 
    | Name | Display Name | Description | Type | Default Value/Options | Required |
    | ---- | ------------ | ---- | --------------------- | -------- | ----------- |
-   | Device | Device | Fortigate device name being managed by this FortiManager instance | String |  | ✅ Checked |
+   | Device | Device | Fortigate device name being managed by this FortiManager instance | String | ValueRequired | ✅ Checked |
    | ServerUsername | Server Username | User ID for the FortiManager instance you are managing. | Secret |  | 🔲 Unchecked |
    | ServerPassword | Server Password | Password for the FortiManager instance you are managing | Secret |  | 🔲 Unchecked |
    | ServerUseSsl | Use SSL | Not Used | Bool | true | ✅ Checked |

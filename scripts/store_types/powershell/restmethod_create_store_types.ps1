@@ -87,7 +87,7 @@ New-StoreType "FortiManager" @'
       "DisplayName": "Device",
       "Type": "String",
       "DependsOn": "",
-      "DefaultValue": "",
+      "DefaultValue": "ValueRequired",
       "IsPAMEligible": false,
       "Required": true
     },
