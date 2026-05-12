@@ -11,19 +11,17 @@
 //See the License for the specific language governing permissions and
 //limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 using Keyfactor.Extensions.Orchestrator.FortiManager.Api;
 using Keyfactor.Logging;
 using Keyfactor.Orchestrators.Common.Enums;
 using Keyfactor.Orchestrators.Extensions;
-
 using Microsoft.Extensions.Logging;
-
-using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Pkcs;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Keyfactor.Extensions.Orchestrator.FortiManager
 {
@@ -39,28 +37,33 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             _logger.LogDebug("Management.ProcessJob: begin");
 
             string host = config.CertificateStoreDetails.ClientMachine;
-            string adom = config.CertificateStoreDetails.StorePath;
             string username = config.ServerUsername;
             string password = config.ServerPassword;
-            string device = string.Empty;
+            string fortimanagerDevice = string.Empty;
+            string fortigateVdom = string.Empty;
 
             FortiManagerClient client = new FortiManagerClient(_logger);
             string session = string.Empty;
 
             try
             {
-                device = ExceptionHandler.GetDeviceFromProperties(config.CertificateStoreDetails.Properties, _logger);
+                List<string> vdomDevice = config.CertificateStoreDetails.StorePath.Split('|').ToList<string>();
+                if (vdomDevice.Count != 2)
+                    throw new ApplicationException($"Error parsing StorePath {config.CertificateStoreDetails.StorePath}.  Value must contain 2 values concatenated with a pipe character (|).");
+
+                fortimanagerDevice = vdomDevice[0];
+                fortigateVdom = vdomDevice[1];
 
                 session = client.Login(host, username, password);
 
                 switch (config.OperationType)
                 {
                     case CertStoreOperationType.Add:
-                        PerformAdd(config, client, host, session, device, adom);
+                        PerformAdd(config, client, host, session, fortimanagerDevice, fortigateVdom);
                         break;
 
                     case CertStoreOperationType.Remove:
-                        PerformRemove(config, client, host, session, device, adom);
+                        PerformRemove(config, client, host, session, fortimanagerDevice, fortigateVdom);
                         break;
 
                     default:
@@ -79,7 +82,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
                     JobHistoryId = config.JobHistoryId,
-                    FailureMessage = $"{config.OperationType} failed for alias '{config.JobCertificate?.Alias}' on device '{device}' (FortiManager: '{host}', ADOM: '{adom}'): {ExceptionHandler.FlattenException(ex)}"
+                    FailureMessage = $"{config.OperationType} failed for alias '{config.JobCertificate?.Alias}' on FortiManager instance {host}, FortiManager device '{fortimanagerDevice}' (FortiManager: '{host}', Fortigate VDOM: '{fortigateVdom}'): {ExceptionHandler.FlattenException(ex)}"
                 };
             }
             finally
