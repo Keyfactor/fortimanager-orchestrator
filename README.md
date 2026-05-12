@@ -150,7 +150,6 @@ the Keyfactor Command Portal
 
    | Name | Display Name | Description | Type | Default Value/Options | Required |
    | ---- | ------------ | ---- | --------------------- | -------- | ----------- |
-   | Device | Device | Fortigate device name being managed by this FortiManager instance | String | ValueRequired | ✅ Checked |
    | ServerUsername | Server Username | User ID for the FortiManager instance you are managing. | Secret |  | 🔲 Unchecked |
    | ServerPassword | Server Password | Password for the FortiManager instance you are managing | Secret |  | 🔲 Unchecked |
    | ServerUseSsl | Use SSL | Not Used | Bool | true | ✅ Checked |
@@ -158,14 +157,6 @@ the Keyfactor Command Portal
    The Custom Fields tab should look like this:
 
    ![FortiManager Custom Fields Tab](docsource/images/FortiManager-custom-fields-store-type-dialog.png)
-
-
-   ###### Device
-   Fortigate device name being managed by this FortiManager instance
-
-   ![FortiManager Custom Field - Device](docsource/images/FortiManager-custom-field-Device-dialog.png)
-   ![FortiManager Custom Field - Device](docsource/images/FortiManager-custom-field-Device-validation-options-dialog.png)
-
 
 
    ###### Server Username
@@ -270,9 +261,8 @@ TODO Certificate Store Configuration is an optional section. If this section doe
    | Category | Select "FortiManager" or the customized certificate store name from the previous step. |
    | Container | Optional container to associate certificate store with. |
    | Client Machine | The IP address or DNS of the FortiManager server |
-   | Store Path | Value must contain the ADOM this certificate store will be managing.  'root' must be entered to manage the default root ADOM. |
+   | Store Path | Value must contain the the FortiManager device name concatenated with the Fortigate VDOM this certificate store will be managing using the pipe character (|) as a delimiter.  For example - Device1|root |
    | Orchestrator | Select an approved orchestrator capable of managing `FortiManager` certificates. Specifically, one with the `FortiManager` capability. |
-   | Device | Fortigate device name being managed by this FortiManager instance |
    | ServerUsername | User ID for the FortiManager instance you are managing. |
    | ServerPassword | Password for the FortiManager instance you are managing |
    | ServerUseSsl | Not Used |
@@ -299,9 +289,8 @@ TODO Certificate Store Configuration is an optional section. If this section doe
    | Category | Select "FortiManager" or the customized certificate store name from the previous step. |
    | Container | Optional container to associate certificate store with. |
    | Client Machine | The IP address or DNS of the FortiManager server |
-   | Store Path | Value must contain the ADOM this certificate store will be managing.  'root' must be entered to manage the default root ADOM. |
+   | Store Path | Value must contain the the FortiManager device name concatenated with the Fortigate VDOM this certificate store will be managing using the pipe character (|) as a delimiter.  For example - Device1|root |
    | Orchestrator | Select an approved orchestrator capable of managing `FortiManager` certificates. Specifically, one with the `FortiManager` capability. |
-   | Properties.Device | Fortigate device name being managed by this FortiManager instance |
    | Properties.ServerUsername | User ID for the FortiManager instance you are managing. |
    | Properties.ServerPassword | Password for the FortiManager instance you are managing |
    | Properties.ServerUseSsl | Not Used |
