@@ -19,6 +19,7 @@ using Keyfactor.Orchestrators.Extensions.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Keyfactor.Extensions.Orchestrator.FortiManager
 {
@@ -42,10 +43,10 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             _logger.LogDebug($"Store Path: {config.CertificateStoreDetails.StorePath}");
 
             string host = config.CertificateStoreDetails.ClientMachine;
-            string adom = config.CertificateStoreDetails.StorePath;
             string username = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager UserId", config.ServerUsername);
             string password = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager User Password", config.ServerPassword);
-            string device = string.Empty;
+            string fortimanagerDevice = string.Empty;
+            string fortigateVdom = string.Empty;
 
             FortiManagerClient client = new FortiManagerClient(_logger);
             string session = string.Empty;
@@ -54,11 +55,16 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             try
             {
-                device = ExceptionHandler.GetDeviceFromProperties(config.CertificateStoreDetails.Properties, _logger);
+                List<string> vdomDevice = config.CertificateStoreDetails.StorePath.Split('|').ToList<string>();
+                if (vdomDevice.Count != 2)
+                    throw new ApplicationException($"Error parsing StorePath {config.CertificateStoreDetails.StorePath}.  Value must contain 2 values concatenated with a pipe character (|).");
+
+                fortimanagerDevice = vdomDevice[0];
+                fortigateVdom = vdomDevice[1];
 
                 session = client.Login(host, username, password);
 
-                List<LocalCertificate> certificates = client.GetCertificates(host, session, device, adom);
+                List<LocalCertificate> certificates = client.GetCertificates(host, session, fortimanagerDevice, fortigateVdom);
 
                 foreach (LocalCertificate cert in certificates)
                 {
@@ -97,7 +103,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
                     JobHistoryId = config.JobHistoryId,
-                    FailureMessage = $"Inventory failed for device '{device}' on FortiManager '{host}' (ADOM: '{adom}'): {ExceptionHandler.FlattenException(ex)}"
+                    FailureMessage = $"Inventory failed for on FortiManager instance {host}, FortiManager device '{fortimanagerDevice}' (FortiManager: '{host}', Fortigate VDOM: '{fortigateVdom}'): {ExceptionHandler.FlattenException(ex)}"
                 };
             }
             finally
