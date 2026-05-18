@@ -150,6 +150,7 @@ the Keyfactor Command Portal
 
    | Name | Display Name | Description | Type | Default Value/Options | Required |
    | ---- | ------------ | ---- | --------------------- | -------- | ----------- |
+   | SyncFortigateDevice | Sync Fortigate Device After Update | Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later. | Bool | false | ✅ Checked |
    | ServerUsername | Server Username | User ID for the FortiManager instance you are managing. | Secret |  | 🔲 Unchecked |
    | ServerPassword | Server Password | Password for the FortiManager instance you are managing | Secret |  | 🔲 Unchecked |
    | ServerUseSsl | Use SSL | Not Used | Bool | true | ✅ Checked |
@@ -157,6 +158,14 @@ the Keyfactor Command Portal
    The Custom Fields tab should look like this:
 
    ![FortiManager Custom Fields Tab](docsource/images/FortiManager-custom-fields-store-type-dialog.png)
+
+
+   ###### Sync Fortigate Device After Update
+   Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later.
+
+   ![FortiManager Custom Field - SyncFortigateDevice](docsource/images/FortiManager-custom-field-SyncFortigateDevice-dialog.png)
+   ![FortiManager Custom Field - SyncFortigateDevice](docsource/images/FortiManager-custom-field-SyncFortigateDevice-validation-options-dialog.png)
+
 
 
    ###### Server Username
@@ -263,6 +272,7 @@ TODO Certificate Store Configuration is an optional section. If this section doe
    | Client Machine | The IP address or DNS of the FortiManager server |
    | Store Path | Value must contain the the FortiManager device name concatenated with the Fortigate VDOM this certificate store will be managing using the pipe character (|) as a delimiter.  For example - Device1|root |
    | Orchestrator | Select an approved orchestrator capable of managing `FortiManager` certificates. Specifically, one with the `FortiManager` capability. |
+   | SyncFortigateDevice | Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later. |
    | ServerUsername | User ID for the FortiManager instance you are managing. |
    | ServerPassword | Password for the FortiManager instance you are managing |
    | ServerUseSsl | Not Used |
@@ -291,6 +301,7 @@ TODO Certificate Store Configuration is an optional section. If this section doe
    | Client Machine | The IP address or DNS of the FortiManager server |
    | Store Path | Value must contain the the FortiManager device name concatenated with the Fortigate VDOM this certificate store will be managing using the pipe character (|) as a delimiter.  For example - Device1|root |
    | Orchestrator | Select an approved orchestrator capable of managing `FortiManager` certificates. Specifically, one with the `FortiManager` capability. |
+   | Properties.SyncFortigateDevice | Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later. |
    | Properties.ServerUsername | User ID for the FortiManager instance you are managing. |
    | Properties.ServerPassword | Password for the FortiManager instance you are managing |
    | Properties.ServerUseSsl | Not Used |
