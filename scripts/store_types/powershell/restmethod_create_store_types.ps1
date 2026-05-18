@@ -83,15 +83,6 @@ New-StoreType "FortiManager" @'
   },
   "Properties": [
     {
-      "Name": "Device",
-      "DisplayName": "Device",
-      "Type": "String",
-      "DependsOn": "",
-      "DefaultValue": "ValueRequired",
-      "IsPAMEligible": false,
-      "Required": true
-    },
-    {
       "Name": "ServerUseSsl",
       "DisplayName": "Use SSL",
       "Type": "Bool",
@@ -106,7 +97,7 @@ New-StoreType "FortiManager" @'
     "StoreRequired": false,
     "Style": "Default"
   },
-  "StorePathDescription": "Value must contain the ADOM this certificate store will be managing.  'root' must be entered to manage the default root ADOM."
+  "StorePathDescription": "Value must contain the the FortiManager device name concatenated with the Fortigate VDOM this certificate store will be managing using the pipe character (|) as a delimiter.  For example - Device1|root"
 }
 '@
 
