@@ -113,12 +113,15 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             ExtractPemParts(pfxBytes, pfxPassword, out string certPem, out string keyPem);
 
+            List<LocalCertificate> existing = client.GetCertificates(host, session, device, adom);
+            bool aliasExists = existing.Exists(c =>
+                                string.Equals(c.Name, alias, StringComparison.OrdinalIgnoreCase));
+
+            if (aliasExists && !config.Overwrite)
+                throw new ApplicationException($"Certificate {alias} already exists.  Please try again with Overwrite selected to replace an existing certificate.");
+
             if (config.Overwrite)
             {
-                List<LocalCertificate> existing = client.GetCertificates(host, session, device, adom);
-                bool aliasExists = existing.Exists(c =>
-                    string.Equals(c.Name, alias, StringComparison.OrdinalIgnoreCase));
-
                 if (aliasExists)
                 {
                     _logger.LogDebug($"Management.PerformAdd: alias '{alias}' exists, updating");
