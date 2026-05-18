@@ -23,7 +23,7 @@ using System.Linq;
 
 namespace Keyfactor.Extensions.Orchestrator.FortiManager
 {
-    public class Inventory : IInventoryJobExtension
+    public class Inventory : BaseJob, IInventoryJobExtension
     {
         public IPAMSecretResolver _resolver;
         public string ExtensionName => "";
@@ -45,8 +45,6 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             string host = config.CertificateStoreDetails.ClientMachine;
             string username = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager UserId", config.ServerUsername);
             string password = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager User Password", config.ServerPassword);
-            string fortimanagerDevice = string.Empty;
-            string fortigateVdom = string.Empty;
 
             FortiManagerClient client = new FortiManagerClient(_logger);
             string session = string.Empty;
@@ -55,12 +53,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             try
             {
-                List<string> vdomDevice = config.CertificateStoreDetails.StorePath.Split('|').ToList<string>();
-                if (vdomDevice.Count != 2)
-                    throw new ApplicationException($"Error parsing StorePath {config.CertificateStoreDetails.StorePath}.  Value must contain 2 values concatenated with a pipe character (|).");
-
-                fortimanagerDevice = vdomDevice[0];
-                fortigateVdom = vdomDevice[1];
+                SetValuesFromStorePath(config.CertificateStoreDetails.StorePath, _logger);
 
                 session = client.Login(host, username, password);
 
@@ -98,12 +91,13 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Inventory.ProcessJob: fatal error during inventory");
+                string error = ExceptionHandler.FlattenException(ex);
+                _logger.LogError(ex, $"Inventory.ProcessJob: fatal error during inventory - {error}");
                 return new JobResult
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
                     JobHistoryId = config.JobHistoryId,
-                    FailureMessage = $"Inventory failed for on FortiManager instance {host}, FortiManager device '{fortimanagerDevice}' (FortiManager: '{host}', Fortigate VDOM: '{fortigateVdom}'): {ExceptionHandler.FlattenException(ex)}"
+                    FailureMessage = $"Inventory failed for on FortiManager instance {host}, FortiManager device '{fortimanagerDevice}' (FortiManager: '{host}', Fortigate VDOM: '{fortigateVdom}'): {error}."
                 };
             }
             finally

@@ -269,6 +269,48 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             }
         }
 
+        public void SyncDevice(string host, string session, string adom, string device, string vdom)
+        {
+            _logger.MethodEntry(LogLevel.Debug);
+
+            string url = $"/securityconsole/install/device";
+
+            object requestBody = new
+            {
+                method = "exec",
+                @params = new[]
+                {
+                    new
+                    {
+                        url,
+                        data = new Dictionary<string, object>
+                        {
+                            { "adom", adom },
+                            { "scope",
+                                new Dictionary<string, object>
+                                {
+                                    { "name", device },
+                                    { "vdom", vdom }
+                                 }  
+                            }
+                        }
+                    }
+                },
+                session,
+                id = 4
+            };
+
+            try
+            {
+                RpcResponse response = PostRpc(host, requestBody);
+                ThrowIfError(response, url);
+            }
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
+        }
+
         private RpcResponse PostRpc(string host, object requestBody)
         {
             _logger.MethodEntry(LogLevel.Debug);
