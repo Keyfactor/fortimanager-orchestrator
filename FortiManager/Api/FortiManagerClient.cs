@@ -167,17 +167,17 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
 
             object requestBody = new
             {
-                method = "add",
+                method = "set",
                 @params = new[]
                 {
                     new
                     {
                         url,
-                        data = new
+                        data = new Dictionary<string, object>
                         {
-                            name,
-                            certificate = certPem,
-                            @private_key = keyPem
+                            { "name", name  },
+                            { "certificate", certPem },
+                            { "private-key", keyPem }
                         }
                     }
                 },
@@ -198,26 +198,26 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             }
         }
 
-        public void UpdateCertificate(string host, string session, string device, string adom,
+        public void UpdateCertificate(string host, string session, string device, string vdom,
             string name, string certPem, string keyPem)
         {
             _logger.MethodEntry(LogLevel.Debug);
 
-            string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local/{name}";
+            string url = $"/pm/config/device/{device}/vdom/{vdom}/vpn/certificate/local/{name}";
             _logger.LogDebug($"FortiManagerClient.UpdateCertificate: updating '{name}' via {url}");
 
             object requestBody = new
             {
-                method = "update",
+                method = "set",
                 @params = new[]
                 {
                     new
                     {
                         url,
-                        data = new
+                        data = new Dictionary<string, object>
                         {
-                            certificate = certPem,
-                            @private_key = keyPem
+                            { "certificate", certPem },
+                            { "private-key", keyPem }
                         }
                     }
                 },
@@ -238,11 +238,11 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             }
         }
 
-        public void DeleteCertificate(string host, string session, string device, string adom, string name)
+        public void DeleteCertificate(string host, string session, string device, string vdom, string name)
         {
             _logger.MethodEntry(LogLevel.Debug);
 
-            string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local/{name}";
+            string url = $"/pm/config/device/{device}/vdom/{vdom}/vpn/certificate/local/{name}";
             _logger.LogDebug($"FortiManagerClient.DeleteCertificate: deleting '{name}' via {url}");
 
             object requestBody = new
