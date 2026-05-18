@@ -16,6 +16,7 @@ using Keyfactor.Logging;
 using Keyfactor.Orchestrators.Common.Enums;
 using Keyfactor.Orchestrators.Extensions;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Pkcs;
 using System;
@@ -25,7 +26,7 @@ using System.Linq;
 
 namespace Keyfactor.Extensions.Orchestrator.FortiManager
 {
-    public class Management : IManagementJobExtension
+    public class Management : BaseJob, IManagementJobExtension
     {
         public string ExtensionName => "";
 
@@ -39,20 +40,16 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             string host = config.CertificateStoreDetails.ClientMachine;
             string username = config.ServerUsername;
             string password = config.ServerPassword;
-            string fortimanagerDevice = string.Empty;
-            string fortigateVdom = string.Empty;
 
             FortiManagerClient client = new FortiManagerClient(_logger);
             string session = string.Empty;
 
+            bool hasWarning = false;
+
             try
             {
-                List<string> vdomDevice = config.CertificateStoreDetails.StorePath.Split('|').ToList<string>();
-                if (vdomDevice.Count != 2)
-                    throw new ApplicationException($"Error parsing StorePath {config.CertificateStoreDetails.StorePath}.  Value must contain 2 values concatenated with a pipe character (|).");
-
-                fortimanagerDevice = vdomDevice[0];
-                fortigateVdom = vdomDevice[1];
+                dynamic properties = JsonConvert.DeserializeObject(config.CertificateStoreDetails.Properties.ToString());
+                bool syncFortigateDevice = properties.SyncFortigateDevice == null || string.IsNullOrEmpty(properties.SyncFortigateDevice.Value) ? false : Convert.ToBoolean(properties.SyncFortigateDevice.Value);
 
                 session = client.Login(host, username, password);
 
@@ -74,15 +71,30 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                             FailureMessage = $"Unsupported operation type: {config.OperationType}"
                         };
                 }
+
+                if (syncFortigateDevice)
+                {
+                    try
+                    {
+                        client.SyncDevice(host, session, fortimanagerAdom, fortimanagerDevice, fortigateVdom);
+                    }
+                    catch (Exception ex)
+                    {
+                        hasWarning = true;
+                        string error = ExceptionHandler.FlattenException(ex);
+                        _logger.LogError(ex, $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but error syncing Fortigate device {fortigateVdom} - {error}");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Management.ProcessJob: error during {config.OperationType} for alias '{config.JobCertificate?.Alias}'");
+                string error = ExceptionHandler.FlattenException(ex);
+                _logger.LogError(ex, $"Management.ProcessJob: error during {config.OperationType} for alias '{config.JobCertificate?.Alias} - {error}.");
                 return new JobResult
                 {
                     Result = OrchestratorJobStatusJobResult.Failure,
                     JobHistoryId = config.JobHistoryId,
-                    FailureMessage = $"{config.OperationType} failed for alias '{config.JobCertificate?.Alias}' on FortiManager instance {host}, FortiManager device '{fortimanagerDevice}' (FortiManager: '{host}', Fortigate VDOM: '{fortigateVdom}'): {ExceptionHandler.FlattenException(ex)}"
+                    FailureMessage = $"{config.OperationType} failed for alias '{config.JobCertificate?.Alias}' on FortiManager instance {host}, FortiManager device '{fortimanagerDevice}' (FortiManager: '{host}', Fortigate VDOM: '{fortigateVdom}'): {error}"
                 };
             }
             finally
@@ -95,7 +107,8 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             return new JobResult
             {
-                Result = OrchestratorJobStatusJobResult.Success,
+                Result = hasWarning ? OrchestratorJobStatusJobResult.Warning : OrchestratorJobStatusJobResult.Success,
+                FailureMessage = hasWarning ? $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but error syncing Fortigate device {fortigateVdom}. Please check logs for details." : null,
                 JobHistoryId = config.JobHistoryId
             };
         }

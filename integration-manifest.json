@@ -33,6 +33,16 @@
           },
           "Properties": [
             {
+              "Name": "SyncFortigateDevice",
+              "DisplayName": "Sync Fortigate Device After Update",
+              "Type": "Bool",
+              "DependsOn": "",
+              "DefaultValue": "false",
+              "IsPAMEligible": false,
+              "Required": true,
+              "Description": "Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later."
+            },
+            {
               "Name": "ServerUsername",
               "DisplayName": "Server Username",
               "Type": "Secret",
