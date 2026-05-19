@@ -108,11 +108,11 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             }
         }
 
-        public List<LocalCertificate> GetCertificates(string host, string session, string device, string adom)
+        public List<LocalCertificate> GetCertificates(string host, string session, string device, string vdom)
         {
             _logger.MethodEntry(LogLevel.Debug);
 
-            string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local";
+            string url = $"/pm/config/device/{device}/vdom/{vdom}/vpn/certificate/local";
             _logger.LogDebug($"FortiManagerClient.GetCertificates: {url}");
 
             object requestBody = new
@@ -130,23 +130,16 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             {
                 RpcResponse response = PostRpc(host, requestBody);
 
-                if (response.Result != null && response.Result.Count > 0 &&
-                    response.Result[0].Status?.Code == -6)
-                {
-                    _logger.LogDebug("FortiManagerClient.GetCertificates: no certificates found (object not found), returning empty list");
-                    return new List<LocalCertificate>();
-                }
-
                 ThrowIfError(response, url);
 
                 RpcResult result = response.Result[0];
 
-                if (result.Data.ValueKind == System.Text.Json.JsonValueKind.Null ||
-                    result.Data.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                if (result.Data?.ValueKind == System.Text.Json.JsonValueKind.Null ||
+                    result.Data?.ValueKind == System.Text.Json.JsonValueKind.Undefined)
                     return new List<LocalCertificate>();
 
                 List<LocalCertificate> certs = JsonSerializer.Deserialize<List<LocalCertificate>>(
-                    result.Data.GetRawText(), JsonOptions) ?? new List<LocalCertificate>();
+                    result.Data?.GetRawText(), JsonOptions) ?? new List<LocalCertificate>();
 
                 _logger.LogDebug($"FortiManagerClient.GetCertificates: retrieved {certs.Count} certificate(s)");
                 return certs;
@@ -157,12 +150,12 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             }
         }
 
-        public void AddCertificate(string host, string session, string device, string adom,
+        public void AddCertificate(string host, string session, string device, string vdom,
             string name, string certPem, string keyPem)
         {
             _logger.MethodEntry(LogLevel.Debug);
 
-            string url = $"/pm/config/device/{device}/vdom/{adom}/vpn/certificate/local";
+            string url = $"/pm/config/device/{device}/vdom/{vdom}/vpn/certificate/local";
             _logger.LogDebug($"FortiManagerClient.AddCertificate: adding '{name}' via {url}");
 
             object requestBody = new

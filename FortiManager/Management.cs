@@ -48,6 +48,8 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             try
             {
+                SetValuesFromStorePath(config.CertificateStoreDetails.StorePath, _logger);
+
                 dynamic properties = JsonConvert.DeserializeObject(config.CertificateStoreDetails.Properties.ToString());
                 bool syncFortigateDevice = properties.SyncFortigateDevice == null || string.IsNullOrEmpty(properties.SyncFortigateDevice.Value) ? false : Convert.ToBoolean(properties.SyncFortigateDevice.Value);
 
@@ -114,7 +116,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
         }
 
         private void PerformAdd(ManagementJobConfiguration config, FortiManagerClient client,
-            string host, string session, string device, string adom)
+            string host, string session, string device, string vdom)
         {
             _logger.MethodEntry(LogLevel.Debug);
 
@@ -126,7 +128,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
 
             ExtractPemParts(pfxBytes, pfxPassword, out string certPem, out string keyPem);
 
-            List<LocalCertificate> existing = client.GetCertificates(host, session, device, adom);
+            List<LocalCertificate> existing = client.GetCertificates(host, session, device, vdom);
             bool aliasExists = existing.Exists(c =>
                                 string.Equals(c.Name, alias, StringComparison.OrdinalIgnoreCase));
 
@@ -138,27 +140,27 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                 if (aliasExists)
                 {
                     _logger.LogDebug($"Management.PerformAdd: alias '{alias}' exists, updating");
-                    client.UpdateCertificate(host, session, device, adom, alias, certPem, keyPem);
+                    client.UpdateCertificate(host, session, device, vdom, alias, certPem, keyPem);
                     _logger.LogDebug("Management.PerformAdd: end");
                     return;
                 }
             }
 
             _logger.LogDebug($"Management.PerformAdd: adding new certificate '{alias}'");
-            client.AddCertificate(host, session, device, adom, alias, certPem, keyPem);
+            client.AddCertificate(host, session, device, vdom, alias, certPem, keyPem);
             
             _logger.MethodExit(LogLevel.Debug);
         }
 
         private void PerformRemove(ManagementJobConfiguration config, FortiManagerClient client,
-            string host, string session, string device, string adom)
+            string host, string session, string device, string vdom)
         {
             _logger.MethodEntry(LogLevel.Debug);
 
             string alias = config.JobCertificate.Alias;
             _logger.LogDebug($"Management.PerformRemove: begin, alias='{alias}'");
 
-            client.DeleteCertificate(host, session, device, adom, alias);
+            client.DeleteCertificate(host, session, device, vdom, alias);
 
             _logger.MethodExit(LogLevel.Debug);
         }
