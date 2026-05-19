@@ -36,9 +36,9 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                 if (adomVdomDevice.Count != 3)
                     throw new ApplicationException($"Error parsing StorePath {storePath}.  Value must contain 3 values (FortiManager ADOM, FortiManager device name, and FortiGate VDOM concatenated with a pipe character (|).");
 
-                string fortimanagerAdom = string.Empty;
-                string fortimanagerDevice = string.Empty;
-                string fortigateVdom = string.Empty;
+                fortimanagerAdom = adomVdomDevice[0];
+                fortimanagerDevice = adomVdomDevice[1];
+                fortigateVdom = adomVdomDevice[2];
             }
             finally
             {

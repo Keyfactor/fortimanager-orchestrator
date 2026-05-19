@@ -12,6 +12,7 @@
 //limitations under the License.
 
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
@@ -22,10 +23,19 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
         public int Id { get; set; }
 
         [JsonPropertyName("session")]
-        public string Session { get; set; }
+        public JsonElement SessionRaw { get; set; }
 
         [JsonPropertyName("result")]
         public List<RpcResult> Result { get; set; }
+
+        [JsonIgnore]
+        public string? Session =>
+            SessionRaw.ValueKind switch
+            {
+                JsonValueKind.String => SessionRaw.GetString(),
+                JsonValueKind.Number => SessionRaw.GetInt32().ToString(),
+                _ => null
+            };
     }
 
     public class RpcResult
@@ -34,7 +44,8 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
         public RpcStatus Status { get; set; }
 
         [JsonPropertyName("data")]
-        public System.Text.Json.JsonElement Data { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public System.Text.Json.JsonElement? Data { get; set; }
 
         [JsonPropertyName("url")]
         public string Url { get; set; }
