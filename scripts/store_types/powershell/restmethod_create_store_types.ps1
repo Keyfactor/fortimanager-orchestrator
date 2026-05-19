@@ -83,6 +83,15 @@ New-StoreType "FortiManager" @'
   },
   "Properties": [
     {
+      "Name": "SyncFortigateDevice",
+      "DisplayName": "Sync Fortigate Device After Update",
+      "Type": "Bool",
+      "DependsOn": "",
+      "DefaultValue": "false",
+      "IsPAMEligible": false,
+      "Required": true
+    },
+    {
       "Name": "ServerUseSsl",
       "DisplayName": "Use SSL",
       "Type": "Bool",
