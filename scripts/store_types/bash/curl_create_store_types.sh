@@ -76,7 +76,7 @@ create_store_type "FortiManager" '{
   "Name": "FortiManager",
   "ShortName": "FortiManager",
   "Capability": "FortiManager",
-  "PrivateKeyAllowed": "Optional",
+  "PrivateKeyAllowed": "Required",
   "ServerRequired": true,
   "PowerShell": false,
   "BlueprintAllowed": false,
