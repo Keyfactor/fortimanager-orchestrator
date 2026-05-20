@@ -23,17 +23,17 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
         public int Id { get; set; }
 
         [JsonPropertyName("session")]
-        public JsonElement SessionRaw { get; set; }
+        public JsonElement? SessionRaw { get; set; }
 
         [JsonPropertyName("result")]
         public List<RpcResult> Result { get; set; }
 
         [JsonIgnore]
-        public string? Session =>
-            SessionRaw.ValueKind switch
+        public string Session =>
+            SessionRaw?.ValueKind switch
             {
-                JsonValueKind.String => SessionRaw.GetString(),
-                JsonValueKind.Number => SessionRaw.GetInt32().ToString(),
+                JsonValueKind.String => SessionRaw?.GetString(),
+                JsonValueKind.Number => SessionRaw?.GetInt32().ToString(),
                 _ => null
             };
     }

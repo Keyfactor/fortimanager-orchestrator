@@ -79,12 +79,13 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                     try
                     {
                         client.SyncDevice(host, session, fortimanagerAdom, fortimanagerDevice, fortigateVdom);
+                        System.Threading.Thread.Sleep(3000);
                     }
                     catch (Exception ex)
                     {
                         hasWarning = true;
                         string error = ExceptionHandler.FlattenException(ex);
-                        _logger.LogError(ex, $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but error syncing Fortigate device {fortigateVdom} - {error}");
+                        _logger.LogError(ex, $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but there was an error syncing Fortigate device {fortigateVdom} - {error}");
                     }
                 }
             }
@@ -110,7 +111,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             return new JobResult
             {
                 Result = hasWarning ? OrchestratorJobStatusJobResult.Warning : OrchestratorJobStatusJobResult.Success,
-                FailureMessage = hasWarning ? $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but error syncing Fortigate device {fortigateVdom}. Please check logs for details." : null,
+                FailureMessage = hasWarning ? $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but there was an error syncing Fortigate device {fortigateVdom}. Please check logs for details." : null,
                 JobHistoryId = config.JobHistoryId
             };
         }

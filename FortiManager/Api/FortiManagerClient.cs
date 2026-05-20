@@ -297,6 +297,56 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
             {
                 RpcResponse response = PostRpc(host, requestBody);
                 ThrowIfError(response, url);
+
+                WaitOnTask(host, session, response.Result[0].Data?.GetProperty("task").GetInt32(), 1);
+            }
+            finally
+            {
+                _logger.MethodExit(LogLevel.Debug);
+            }
+        }
+
+        public void WaitOnTask(string host, string session, int? task, int numTries)
+        {
+            _logger.MethodEntry(LogLevel.Debug);
+
+            string url = $"/task/task/{task.ToString()}";
+
+            object requestBody = new
+            {
+                method = "get",
+                @params = new[]
+                {
+                    new
+                    {
+                        url
+                    }
+                },
+                session,
+                id = 4
+            };
+
+            try
+            {
+                RpcResponse response = PostRpc(host, requestBody);
+                ThrowIfError(response, url);
+
+                int? percent = response.Result[0].Data?.GetProperty("percent").GetInt32();
+                int? numberOfErrors = response.Result[0].Data?.GetProperty("num_err").GetInt32();
+
+                if (numberOfErrors > 0)
+                    throw new ApplicationException($"Error syncing to Fortigate device - {JsonSerializer.Serialize(response.Result[0].Data, new JsonSerializerOptions { WriteIndented = true })}");
+
+                _logger.LogDebug($"Task status check try number {numTries.ToString()}.  Percent complete: {percent.ToString()}");
+
+                if (numTries > 50)
+                    throw new ApplicationException($"Maximum number of {numTries} attempted.  Sync did not complete in alloted time.  Add/Remove certificate completed successfully, but Fortigate sync may not have.");
+
+                if (percent < 100)
+                {
+                    System.Threading.Thread.Sleep(3000);
+                    WaitOnTask(host, session, task, numTries + 1);
+                }
             }
             finally
             {
