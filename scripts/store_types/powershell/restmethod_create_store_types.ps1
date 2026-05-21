@@ -106,7 +106,7 @@ New-StoreType "FortiManager" @'
     "StoreRequired": false,
     "Style": "Default"
   },
-  "StorePathDescription": "Value must contain the the FortiManager ADOM, FortiManager device name, and Fortigate VDOM this certificate store will be managing using the pipe character as a delimiter.  For example - root|Device1|root"
+  "StorePathDescription": "Value must contain the the FortiManager ADOM, FortiManager device name, and Fortigate VDOM this certificate store will be managing using the pipe character as a delimiter.  For example - `root|Device1|root`"
 }
 '@
 
