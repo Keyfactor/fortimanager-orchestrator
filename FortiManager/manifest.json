@@ -2,11 +2,11 @@
   "extensions": {
     "Keyfactor.Orchestrators.Extensions.IOrchestratorJobExtension": {
       "CertStores.FortiManager.Inventory": {
-        "assemblypath": "Keyfactor.Extensions.Orchestrators.FortiManager.dll",
+        "assemblypath": "FortiManager.dll",
         "TypeFullName": "Keyfactor.Extensions.Orchestrator.FortiManager.Inventory"
       },
       "CertStores.FortiManager.Management": {
-        "assemblypath": "Keyfactor.Extensions.Orchestrators.FortiManager.dll",
+        "assemblypath": "FortiManager.dll",
         "TypeFullName": "Keyfactor.Extensions.Orchestrator.FortiManager.Management"
       }
     }

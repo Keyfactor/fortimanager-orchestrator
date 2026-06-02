@@ -1,41 +1,75 @@
 {
   "$schema": "https://keyfactor.github.io/v2/integration-manifest-schema.json",
+  "integration_type": "orchestrator",
+  "name": "Integration Template",
+  "status": "prototype",
+  "description": "This project is meant to be a template to quickly build a basic integration product build. Currently in dev, a work in progress,",
+  "link_github": false,
+  "support_level": "kf-supported",
+  "release_project": "FortiManager/FortiManager.csproj",
+  "release_dir": "FortiManager/bin/Release",
+  "update_catalog": false,
   "about": {
     "orchestrator": {
-      "UOFramework": "10.1",
-      "keyfactor_platform_version": "9.10",
-      "pam_support": false,
+      "UOFramework": "10.4",
+      "keyfactor_platform_version": "10.4",
+      "pam_support": true,
       "store_types": [
         {
-          "Name": "MyOrchestratorStoreType",
-          "ShortName": "MOST",
-          "Capability": "MOST",
-          "LocalStore": false,
+          "Name": "FortiManager",
+          "ShortName": "FortiManager",
+          "Capability": "FortiManager",
+          "PrivateKeyAllowed": "Required",
+          "ServerRequired": true,
+          "PowerShell": false,
+          "BlueprintAllowed": false,
+          "CustomAliasAllowed": "Required",
           "SupportedOperations": {
-            "Add": false,
+            "Add": true,
             "Create": false,
             "Discovery": false,
             "Enrollment": false,
-            "Remove": false
+            "Remove": true
           },
           "Properties": [
             {
-              "Name": "CustomField1",
-              "DisplayName": "CustomField1",
-              "Description": "CustomField1 Description",
-              "Type": "String",
+              "Name": "SyncFortigateDevice",
+              "DisplayName": "Sync Fortigate Device After Update",
+              "Type": "Bool",
               "DependsOn": "",
-              "DefaultValue": "default",
-              "Required": true
+              "DefaultValue": "false",
+              "IsPAMEligible": false,
+              "Required": true,
+              "Description": "Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later."
             },
             {
-              "Name": "CustomField2",
-              "DisplayName": "CustomField2",
-              "Description": "CustomField2 Description",
-              "Type": "String",
+              "Name": "ServerUsername",
+              "DisplayName": "Server Username",
+              "Type": "Secret",
               "DependsOn": "",
               "DefaultValue": "",
-              "Required": true
+              "IsPAMEligible": true,
+              "Required": false,
+              "Description": "User ID for the FortiManager instance you are managing."
+            },
+            {
+              "Name": "ServerPassword",
+              "DisplayName": "Server Password",
+              "Type": "Secret",
+              "DependsOn": "",
+              "DefaultValue": "",
+              "IsPAMEligible": true,
+              "Required": false,
+              "Description": "Password for the FortiManager instance you are managing"
+            },
+            {
+              "Name": "ServerUseSsl",
+              "DisplayName": "Use SSL",
+              "Type": "Bool",
+              "DependsOn": "",
+              "DefaultValue": "true",
+              "Required": true,
+              "Description": "Not Used"
             }
           ],
           "EntryParameters": [],
@@ -44,25 +78,10 @@
             "StoreRequired": false,
             "Style": "Default"
           },
-          "StorePathType": "",
-          "StorePathValue": "",
-          "StorePathDescription": "",
-          "PrivateKeyAllowed": "Forbidden",
-          "JobProperties": [],
-          "ServerRequired": true,
-          "PowerShell": false,
-          "BlueprintAllowed": false,
-          "CustomAliasAllowed": "Forbidden"
+          "ClientMachineDescription": "The IP address or DNS of the FortiManager server",
+          "StorePathDescription": "Value must contain the the FortiManager ADOM, FortiManager device name, and Fortigate VDOM this certificate store will be managing using the pipe character as a delimiter.  For example - root&#124;Device1&#124;root"
         }
       ]
     }
-  },
-  "description": "This project is meant to be a template to quickly build a basic integration product build. Currently in dev, a work in progress,",
-  "integration_type": "orchestrator",
-  "link_github": false,
-  "name": "Integration Template",
-  "release_dir": "UPDATE-THIS-WITH-PATH-TO-BINARY-BUILD-FOLDER",
-  "status": "prototype",
-  "support_level": "community",
-  "update_catalog": false
+  }
 }
