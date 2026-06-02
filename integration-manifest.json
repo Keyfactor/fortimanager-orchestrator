@@ -3,7 +3,7 @@
   "integration_type": "orchestrator",
   "name": "Integration Template",
   "status": "prototype",
-  "description": "This project is meant to be a template to quickly build a basic integration product build. Currently in dev, a work in progress, ",
+  "description": "This project is meant to be a template to quickly build a basic integration product build. Currently in dev, a work in progress,",
   "link_github": false,
   "support_level": "kf-supported",
   "release_project": "FortiManager/FortiManager.csproj",
