@@ -48,13 +48,12 @@ Use cases not supported:
 3. Management of globally scoped certificates on the Fortigate device the FortiManager device is mapped to.
 4. Removal of ANY certificate bound to a managed Fortigate object (i.e. SSL VPN or HTTPS server certificate).
 
-
-
 ## Compatibility
 
 This integration is compatible with Keyfactor Universal Orchestrator version 10.4 and later.
 
 ## Support
+
 The Integration Template Universal Orchestrator extension is supported by Keyfactor. If you require support for any issues or have feature request, please open a support ticket by either contacting your Keyfactor representative or via the Keyfactor Support Portal at https://support.keyfactor.com.
 
 > If you want to contribute bug fixes or additional enhancements, use the **[Pull requests](../../pulls)** tab.
@@ -63,34 +62,28 @@ The Integration Template Universal Orchestrator extension is supported by Keyfac
 
 Before installing the Integration Template Universal Orchestrator extension, we recommend that you install [kfutil](https://github.com/Keyfactor/kfutil). Kfutil is a command-line tool that simplifies the process of creating store types, installing extensions, and instantiating certificate stores in Keyfactor Command.
 
-
-
 ## FortiManager Certificate Store Type
 
 To use the Integration Template Universal Orchestrator extension, you **must** create the FortiManager Certificate Store Type. This only needs to happen _once_ per Keyfactor Command instance.
 
 
 
-
-
-
-
-
 #### Supported Operations
 
-| Operation    | Is Supported                                                                                                           |
-|--------------|------------------------------------------------------------------------------------------------------------------------|
-| Add          | ✅ Checked        |
-| Remove       | ✅ Checked     |
-| Discovery    | 🔲 Unchecked  |
+| Operation    | Is Supported |
+|--------------|--------------|
+| Add          | ✅ Checked |
+| Remove       | ✅ Checked |
+| Discovery    | 🔲 Unchecked |
 | Reenrollment | 🔲 Unchecked |
-| Create       | 🔲 Unchecked     |
+| Create       | 🔲 Unchecked |
 
 #### Store Type Creation
 
 ##### Using kfutil:
 `kfutil` is a custom CLI for the Keyfactor Command API and can be used to create certificate store types.
 For more information on [kfutil](https://github.com/Keyfactor/kfutil) check out the [docs](https://github.com/Keyfactor/kfutil?tab=readme-ov-file#quickstart)
+
    <details><summary>Click to expand FortiManager kfutil details</summary>
 
    ##### Using online definition from GitHub:
@@ -109,10 +102,10 @@ For more information on [kfutil](https://github.com/Keyfactor/kfutil) check out 
    ```
    </details>
 
-
 #### Manual Creation
 Below are instructions on how to create the FortiManager store type manually in
 the Keyfactor Command Portal
+
    <details><summary>Click to expand manual FortiManager details</summary>
 
    Create a store type called `FortiManager` with the attributes in the tables below:
@@ -123,11 +116,11 @@ the Keyfactor Command Portal
    | Name | FortiManager | Display name for the store type (may be customized) |
    | Short Name | FortiManager | Short display name for the store type |
    | Capability | FortiManager | Store type name orchestrator will register with. Check the box to allow entry of value |
-   | Supports Add | ✅ Checked | Check the box. Indicates that the Store Type supports Management Add |
-   | Supports Remove | ✅ Checked | Check the box. Indicates that the Store Type supports Management Remove |
-   | Supports Discovery | 🔲 Unchecked |  Indicates that the Store Type supports Discovery |
-   | Supports Reenrollment | 🔲 Unchecked |  Indicates that the Store Type supports Reenrollment |
-   | Supports Create | 🔲 Unchecked |  Indicates that the Store Type supports store creation |
+   | Supports Add | ✅ Checked | Indicates that the Store Type supports Management Add |
+   | Supports Remove | ✅ Checked | Indicates that the Store Type supports Management Remove |
+   | Supports Discovery | 🔲 Unchecked | Indicates that the Store Type supports Discovery |
+   | Supports Reenrollment | 🔲 Unchecked | Indicates that the Store Type supports Reenrollment |
+   | Supports Create | 🔲 Unchecked | Indicates that the Store Type supports store creation |
    | Needs Server | ✅ Checked | Determines if a target server name is required when creating store |
    | Blueprint Allowed | 🔲 Unchecked | Determines if store type may be included in an Orchestrator blueprint |
    | Uses PowerShell | 🔲 Unchecked | Determines if underlying implementation is PowerShell |
@@ -136,18 +129,18 @@ the Keyfactor Command Portal
 
    The Basic tab should look like this:
 
-   ![FortiManager Basic Tab](docsource/images/FortiManager-basic-store-type-dialog.png)
+   ![FortiManager Basic Tab](docsource/images/FortiManager-basic-store-type-dialog.svg)
 
    ##### Advanced Tab
    | Attribute | Value | Description |
    | --------- | ----- | ----- |
    | Supports Custom Alias | Required | Determines if an individual entry within a store can have a custom Alias. |
-   | Private Key Handling | Required | This determines if Keyfactor can send the private key associated with a certificate to the store. Required because IIS certificates without private keys would be invalid. |
+   | Private Key Handling | Required | This determines if Keyfactor can send the private key associated with a certificate to the store. |
    | PFX Password Style | Default | 'Default' - PFX password is randomly generated, 'Custom' - PFX password may be specified when the enrollment job is created (Requires the Allow Custom Password application setting to be enabled.) |
 
    The Advanced tab should look like this:
 
-   ![FortiManager Advanced Tab](docsource/images/FortiManager-advanced-store-type-dialog.png)
+   ![FortiManager Advanced Tab](docsource/images/FortiManager-advanced-store-type-dialog.svg)
 
    > For Keyfactor **Command versions 24.4 and later**, a Certificate Format dropdown is available with PFX and PEM options. Ensure that **PFX** is selected, as this determines the format of new and renewed certificates sent to the Orchestrator during a Management job. Currently, all Keyfactor-supported Orchestrator extensions support only PFX.
 
@@ -163,15 +156,12 @@ the Keyfactor Command Portal
 
    The Custom Fields tab should look like this:
 
-   ![FortiManager Custom Fields Tab](docsource/images/FortiManager-custom-fields-store-type-dialog.png)
-
+   ![FortiManager Custom Fields Tab](docsource/images/FortiManager-custom-fields-store-type-dialog.svg)
 
    ###### Sync Fortigate Device After Update
    Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later.
 
-   ![FortiManager Custom Field - SyncFortigateDevice](docsource/images/FortiManager-custom-field-SyncFortigateDevice-dialog.png)
-   ![FortiManager Custom Field - SyncFortigateDevice](docsource/images/FortiManager-custom-field-SyncFortigateDevice-validation-options-dialog.png)
-
+   ![FortiManager Custom Field - SyncFortigateDevice](docsource/images/FortiManager-custom-field-SyncFortigateDevice-dialog.svg)
 
 
    ###### Server Username
@@ -182,8 +172,6 @@ the Keyfactor Command Portal
    > This field is created by the `Needs Server` on the Basic tab, do not create this field manually.
 
 
-
-
    ###### Server Password
    Password for the FortiManager instance you are managing
 
@@ -192,16 +180,10 @@ the Keyfactor Command Portal
    > This field is created by the `Needs Server` on the Basic tab, do not create this field manually.
 
 
-
-
    ###### Use SSL
    Not Used
 
-   ![FortiManager Custom Field - ServerUseSsl](docsource/images/FortiManager-custom-field-ServerUseSsl-dialog.png)
-   ![FortiManager Custom Field - ServerUseSsl](docsource/images/FortiManager-custom-field-ServerUseSsl-validation-options-dialog.png)
-
-
-
+   ![FortiManager Custom Field - ServerUseSsl](docsource/images/FortiManager-custom-field-ServerUseSsl-dialog.svg)
 
 
    </details>
@@ -210,12 +192,12 @@ the Keyfactor Command Portal
 
 1. **Download the latest Integration Template Universal Orchestrator extension from GitHub.**
 
-    Navigate to the [Integration Template Universal Orchestrator extension GitHub version page](https://github.com/Keyfactor/fortimanager-orchestrator/releases/latest). Refer to the compatibility matrix below to determine the asset should be downloaded. Then, click the corresponding asset to download the zip archive.
+    Navigate to the [Integration Template Universal Orchestrator extension GitHub version page](https://github.com/Keyfactor/fortimanager-orchestrator/releases/latest). Refer to the compatibility matrix below to determine which asset should be downloaded. Then, click the corresponding asset to download the zip archive.
 
    | Universal Orchestrator Version | Latest .NET version installed on the Universal Orchestrator server | `rollForward` condition in `Orchestrator.runtimeconfig.json` | `fortimanager-orchestrator` .NET version to download |
    | --------- | ----------- | ----------- | ----------- |
    | Between `11.0.0` and `11.5.1` (inclusive) | `net8.0` | `LatestMajor` | `net8.0` |
-   | `11.6` _and_ newer | `net8.0` | | `net8.0` | 
+   | `11.6` _and_ newer | `net8.0` | | `net8.0` |
 
     Unzip the archive containing extension assemblies to a known location.
 
@@ -237,21 +219,15 @@ the Keyfactor Command Portal
 
     Refer to [Starting/Restarting the Universal Orchestrator service](https://software.keyfactor.com/Core-OnPrem/Current/Content/InstallingAgents/NetCoreOrchestrator/StarttheService.htm).
 
-
 6. **(optional) PAM Integration**
 
     The Integration Template Universal Orchestrator extension is compatible with all supported Keyfactor PAM extensions to resolve PAM-eligible secrets. PAM extensions running on Universal Orchestrators enable secure retrieval of secrets from a connected PAM provider.
 
     To configure a PAM provider, [reference the Keyfactor Integration Catalog](https://keyfactor.github.io/integrations-catalog/content/pam) to select an extension and follow the associated instructions to install it on the Universal Orchestrator (remote).
 
-
 > The above installation steps can be supplemented by the [official Command documentation](https://software.keyfactor.com/Core-OnPrem/Current/Content/InstallingAgents/NetCoreOrchestrator/CustomExtensions.htm?Highlight=extensions).
 
-
-
 ## Defining Certificate Stores
-
-
 
 ### Store Creation
 
@@ -267,8 +243,8 @@ the Keyfactor Command Portal
 
     Click the Add button to add a new Certificate Store. Use the table below to populate the **Attributes** in the **Add** form.
 
-   | Attribute | Description                                             |
-   | --------- |---------------------------------------------------------|
+   | Attribute | Description |
+   | --------- | ----------- |
    | Category | Select "FortiManager" or the customized certificate store name from the previous step. |
    | Container | Optional container to associate certificate store with. |
    | Client Machine | The IP address or DNS of the FortiManager server |
@@ -280,8 +256,6 @@ the Keyfactor Command Portal
    | ServerUseSsl | Not Used |
 
 </details>
-
-
 
 #### Using kfutil CLI
 
@@ -316,7 +290,6 @@ the Keyfactor Command Portal
 
 </details>
 
-
 #### PAM Provider Eligible Fields
 <details><summary>Attributes eligible for retrieval by a PAM Provider on the Universal Orchestrator</summary>
 
@@ -332,11 +305,7 @@ Please refer to the **Universal Orchestrator (remote)** usage section ([PAM prov
 
 </details>
 
-
 > The content in this section can be supplemented by the [official Command documentation](https://software.keyfactor.com/Core-OnPrem/Current/Content/ReferenceGuide/Certificate%20Stores.htm?Highlight=certificate%20store).
-
-
-
 
 
 ## License
