@@ -272,7 +272,7 @@ the Keyfactor Command Portal
    | Category | Select "FortiManager" or the customized certificate store name from the previous step. |
    | Container | Optional container to associate certificate store with. |
    | Client Machine | The IP address or DNS of the FortiManager server |
-   | Store Path | Value must contain the the FortiManager ADOM, FortiManager device name, and Fortigate VDOM this certificate store will be managing using the pipe character as a delimiter.  For example - `root|Device1|root` |
+   | Store Path | Value must contain the the FortiManager ADOM, FortiManager device name, and Fortigate VDOM this certificate store will be managing using the pipe character as a delimiter.  For example - root&#124;Device1&#124;root |
    | Orchestrator | Select an approved orchestrator capable of managing `FortiManager` certificates. Specifically, one with the `FortiManager` capability. |
    | SyncFortigateDevice | Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later. |
    | ServerUsername | User ID for the FortiManager instance you are managing. |
@@ -301,7 +301,7 @@ the Keyfactor Command Portal
    | Category | Select "FortiManager" or the customized certificate store name from the previous step. |
    | Container | Optional container to associate certificate store with. |
    | Client Machine | The IP address or DNS of the FortiManager server |
-   | Store Path | Value must contain the the FortiManager ADOM, FortiManager device name, and Fortigate VDOM this certificate store will be managing using the pipe character as a delimiter.  For example - `root|Device1|root` |
+   | Store Path | Value must contain the the FortiManager ADOM, FortiManager device name, and Fortigate VDOM this certificate store will be managing using the pipe character as a delimiter.  For example - root&#124;Device1&#124;root |
    | Orchestrator | Select an approved orchestrator capable of managing `FortiManager` certificates. Specifically, one with the `FortiManager` capability. |
    | Properties.SyncFortigateDevice | Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later. |
    | Properties.ServerUsername | User ID for the FortiManager instance you are managing. |
