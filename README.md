@@ -162,6 +162,7 @@ the Keyfactor Command Portal
    Set to true if you want to push any modifications automatically to the managed Fortigate device.  Set to false if you only want to make modifications on the FortiManager device and sync later.
 
    ![FortiManager Custom Field - SyncFortigateDevice](docsource/images/FortiManager-custom-field-SyncFortigateDevice-dialog.svg)
+   ![FortiManager Custom Field - SyncFortigateDevice](docsource/images/FortiManager-custom-field-SyncFortigateDevice-validation-options-dialog.svg)
 
 
    ###### Server Username
@@ -184,6 +185,7 @@ the Keyfactor Command Portal
    Not Used
 
    ![FortiManager Custom Field - ServerUseSsl](docsource/images/FortiManager-custom-field-ServerUseSsl-dialog.svg)
+   ![FortiManager Custom Field - ServerUseSsl](docsource/images/FortiManager-custom-field-ServerUseSsl-validation-options-dialog.svg)
 
 
    </details>
