@@ -68,7 +68,7 @@ $Body = @'
       "DependsOn": "",
       "DefaultValue": "true",
       "Required": true,
-      "Description": "Not Used"
+      "Description": "Not Used.  Required field in the Keyfactor Command UI, but not used by this integration."
     }
   ],
   "EntryParameters": [],
