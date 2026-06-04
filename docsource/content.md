@@ -1,18 +1,19 @@
 ## Overview
 
-The FortiManager Orchestrator Extension supports the Inventory, Add, and Removal of certificates against a specified Fortigate device managed by the targeted FortiManager instance.  These devices can be found in the FortiManager UI
-by going to Device Manager => Device & Groups => Managed FortiGate.  Each Keyfactor Command Certificate Store represents a single unique FortiManager instance + FortiManager ADOM + FortiManager device mapped to a managed Fortigate device, 
-as well as a specified VDOM of the managed Fortigate device.  The user also has the option to automatically push/sync FortiManager device modifications (add/removal of certificate) to the Fortigate device or sync manually later.  Use cases supported:
+The FortiManager Orchestrator Extension enables certificate inventory, addition, and removal on FortiGate devices managed by a FortiManager instance. Managed devices can be found in the FortiManager UI under Device Manager → Device & Groups → Managed FortiGate.
+Each Keyfactor Command Certificate Store maps to a unique combination of FortiManager instance, ADOM, device, and a specific VDOM on the managed FortiGate device. Certificate changes (add/remove) can be pushed to the FortiGate device automatically or synced manually at a later time.
 
-1. Inventory of all certificates for the specified FortiManager device mapped to a specified Fortigate device and specified Fortigate VDOM.
-2. Ability to add new certificates to a specified FortiManager device mapped to a specified Fortigate device and specified Fortigate VDOM.
-3. Ability to replace existing certificates on a specified FortiManager device mapped to a specified Fortigate device and specified Fortigate VDOM.
-4. Ability to remove existing **unbound** certificates from a specified FortiManager device mapped to a specified Fortigate device and specified Fortigate VDOM.
-5. 2-4 can optionally be followed by syncing locally to the Fortigate device being managed.
+Supported use cases:
 
-Use cases not supported:
+1. Inventory all certificates for a specified FortiGate device and VDOM, as managed through FortiManager.
+2. Add new certificates to a specified FortiGate device and VDOM.
+3. Replace existing certificates on a specified FortiGate device and VDOM.
+4. Remove existing unbound certificates from a specified FortiGate device and VDOM.
+5. Any of the above (2–4) can optionally be followed by syncing changes down to the managed FortiGate device.
 
-1. Management of certificates enrolled throught the internal Fortigate or FortiManager CA
-2. Management of factory certificates
-3. Management of globally scoped certificates on the Fortigate device the FortiManager device is mapped to.
-4. Removal of ANY certificate bound to a managed Fortigate object (i.e. SSL VPN or HTTPS server certificate).
+Unsupported use cases:
+
+1. Certificates enrolled through the FortiGate or FortiManager internal CA.
+2. Factory-installed certificates.
+3. Globally scoped certificates on the managed FortiGate device.
+4. Removal of any certificate that is bound to a FortiGate object (e.g., an SSL VPN or HTTPS server certificate).
