@@ -68,7 +68,7 @@ curl -s -X POST "https://${KEYFACTOR_HOSTNAME}/${KEYFACTOR_API_PATH}/Certificate
       "DependsOn": "",
       "DefaultValue": "true",
       "Required": true,
-      "Description": "Not Used"
+      "Description": "Not Used.  Required field in the Keyfactor Command UI, but not used by this integration."
     }
   ],
   "EntryParameters": [],
