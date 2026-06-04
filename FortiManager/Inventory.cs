@@ -1,84 +1,150 @@
-﻿using System;
-using System.Collections.Generic;
+//Copyright 2026 Keyfactor
+//Licensed under the Apache License, Version 2.0 (the "License");
+//you may not use this file except in compliance with the License.
+//You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//Unless required by applicable law or agreed to in writing, software
+//distributed under the License is distributed on an "AS IS" BASIS,
+//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//See the License for the specific language governing permissions and
+//limitations under the License.
 
+using Keyfactor.Extensions.Orchestrator.FortiManager.Api;
 using Keyfactor.Logging;
+using Keyfactor.Orchestrators.Common.Enums;
 using Keyfactor.Orchestrators.Extensions;
-
+using Keyfactor.Orchestrators.Extensions.Interfaces;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Keyfactor.Extensions.Orchestrator.SampleOrchestratorExtension
+namespace Keyfactor.Extensions.Orchestrator.FortiManager
 {
-    // The Inventory class implementes IAgentJobExtension and is meant to find all of the certificates in a given certificate store on a given server
-    //  and return those certificates back to Keyfactor for storing in its database.  Private keys will NOT be passed back to Keyfactor Command 
-    public class Inventory : IInventoryJobExtension
+    public class Inventory : BaseJob, IInventoryJobExtension
     {
-        //Necessary to implement IInventoryJobExtension but not used.  Leave as empty string.
+        public IPAMSecretResolver _resolver;
         public string ExtensionName => "";
 
-        //Job Entry Point
+        private ILogger _logger;
+
+        public Inventory(IPAMSecretResolver resolver)
+        {
+            _resolver = resolver;
+        }
+
         public JobResult ProcessJob(InventoryJobConfiguration config, SubmitInventoryUpdate submitInventory)
         {
-            //METHOD ARGUMENTS...
-            //config - contains context information passed from KF Command to this job run:
-            //
-            // config.Server.Username, config.Server.Password - credentials for orchestrated server - use to authenticate to certificate store server.
-            //
-            // config.ServerUsername, config.ServerPassword - credentials for orchestrated server - use to authenticate to certificate store server.
-            // config.CertificateStoreDetails.ClientMachine - server name or IP address of orchestrated server
-            // config.CertificateStoreDetails.StorePath - location path of certificate store on orchestrated server
-            // config.CertificateStoreDetails.StorePassword - if the certificate store has a password, it would be passed here
-            // config.CertificateStoreDetails.Properties - JSON string containing custom store properties for this specific store type
+            _logger = LogHandler.GetClassLogger(this.GetType());
+            _logger.LogDebug($"Begin {config.Capability} for job id {config.JobId}...");
+            _logger.LogDebug($"Client Machine: {config.CertificateStoreDetails.ClientMachine}");
+            _logger.LogDebug($"Store Path: {config.CertificateStoreDetails.StorePath}");
 
-            //NLog Logging to c:\CMS\Logs\CMS_Agent_Log.txt
-            ILogger logger = LogHandler.GetClassLogger(this.GetType());
-            logger.LogDebug($"Begin Inventory...");
+            string host = config.CertificateStoreDetails.ClientMachine;
+            string username = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager UserId", config.ServerUsername);
+            string password = PAMUtilities.ResolvePAMField(_resolver, _logger, "FortiManager User Password", config.ServerPassword);
 
-            //List<AgentCertStoreInventoryItem> is the collection that the interface expects to return from this job.  It will contain a collection of certificates found in the store along with other information about those certificates
+            FortiManagerClient client = new FortiManagerClient(_logger);
+            string session = string.Empty;
+
             List<CurrentInventoryItem> inventoryItems = new List<CurrentInventoryItem>();
 
             try
             {
-                //Code logic to:
-                // 1) Connect to the orchestrated server (config.CertificateStoreDetails.ClientMachine) containing the certificate store to be inventoried (config.CertificateStoreDetails.StorePath)
-                // 2) Custom logic to retrieve certificates from certificate store.
-                // 3) Add certificates (no private keys) to the collection below.  If multiple certs in a store comprise a chain, the Certificates array will house multiple certs per InventoryItem.  If multiple certs
-                //     in a store comprise separate unrelated certs, there will be one InventoryItem object created per certificate.
+                SetValuesFromStorePath(config.CertificateStoreDetails.StorePath, _logger);
 
-                //**** Will need to uncomment the block below and code to the extension's specific needs.  This builds the collection of certificates and related information that will be passed back to the KF Orchestrator service and then Command.
-                //inventoryItems.Add(new AgentCertStoreInventoryItem()
-                //{
-                //    ItemStatus = OrchestratorInventoryItemStatus.Unknown, //There are other statuses, but Command can determine how to handle new vs modified certificates
-                //    Alias = {valueRepresentingChainIdentifier}
-                //    PrivateKeyEntry = true|false //You will not pass the private key back, but you can identify if the main certificate of the chain contains a private key in the store
-                //    UseChainLevel = true|false,  //true if Certificates will contain > 1 certificate, main cert => intermediate CA cert => root CA cert.  false if Certificates will contain an array of 1 certificate
-                //    Certificates = //Array of single X509 certificates in Base64 string format (certificates if chain, single cert if not), something like:
-                //    ****************************
-                //          foreach(X509Certificate2 certificate in certificates)
-                //              certList.Add(Convert.ToBase64String(certificate.Export(X509ContentType.Cert)));
-                //              certList.ToArray();
-                //    ****************************
-                //});
+                session = client.Login(host, username, password);
 
+                List<LocalCertificate> certificates = client.GetCertificates(host, session, fortimanagerDevice, fortigateVdom);
+
+                foreach (LocalCertificate cert in certificates)
+                {
+                    if (string.IsNullOrEmpty(cert.Certificate))
+                    {
+                        _logger.LogDebug($"Inventory.ProcessJob: skipping '{cert.Name}' — no certificate data");
+                        continue;
+                    }
+
+                    try
+                    {
+                        string base64Cert = ConvertPemToBase64Der(cert.Certificate);
+
+                        CurrentInventoryItem inventoryItem = new CurrentInventoryItem
+                        {
+                            Alias = cert.Name,
+                            Certificates = new string[] { base64Cert },
+                            PrivateKeyEntry = !cert.CertInfo.IsCa,
+                            UseChainLevel = false,
+                            ItemStatus = OrchestratorInventoryItemStatus.Unknown
+                        };
+
+                        inventoryItems.Add(inventoryItem);
+                        _logger.LogDebug($"Inventory.ProcessJob: added '{cert.Name}' to inventory");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, $"Inventory.ProcessJob: failed to process certificate '{cert.Name}', skipping");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                //Status: 2=Success, 3=Warning, 4=Error
-                return new JobResult() { Result = Keyfactor.Orchestrators.Common.Enums.OrchestratorJobStatusJobResult.Failure, JobHistoryId = config.JobHistoryId, FailureMessage = "Custom message you want to show to show up as the error message in Job History in KF Command" };
+                string error = ExceptionHandler.FlattenException(ex);
+                _logger.LogError(ex, $"Inventory.ProcessJob: fatal error during inventory - {error}");
+                return new JobResult
+                {
+                    Result = OrchestratorJobStatusJobResult.Failure,
+                    JobHistoryId = config.JobHistoryId,
+                    FailureMessage = $"Inventory failed for on FortiManager instance {host}, FortiManager device '{fortimanagerDevice}' (FortiManager: '{host}', Fortigate VDOM: '{fortigateVdom}'): {error}."
+                };
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(session))
+                    client.Logout(host, session);
+
+                _logger.LogDebug("Inventory.ProcessJob: end");
             }
 
             try
             {
-                //Sends inventoried certificates back to KF Command
                 submitInventory.Invoke(inventoryItems);
-                //Status: 2=Success, 3=Warning, 4=Error
-                return new JobResult() { Result = Keyfactor.Orchestrators.Common.Enums.OrchestratorJobStatusJobResult.Success, JobHistoryId = config.JobHistoryId };
+                return new JobResult
+                {
+                    Result = OrchestratorJobStatusJobResult.Success,
+                    JobHistoryId = config.JobHistoryId
+                };
             }
             catch (Exception ex)
             {
-                // NOTE: if the cause of the submitInventory.Invoke exception is a communication issue between the Orchestrator server and the Command server, the job status returned here
-                //  may not be reflected in Keyfactor Command.
-                return new JobResult() { Result = Keyfactor.Orchestrators.Common.Enums.OrchestratorJobStatusJobResult.Failure, JobHistoryId = config.JobHistoryId, FailureMessage = "Custom message you want to show to show up as the error message in Job History in KF Command" };
+                _logger.LogError(ex, "Inventory.ProcessJob: error submitting inventory to Keyfactor Command");
+                return new JobResult
+                {
+                    Result = OrchestratorJobStatusJobResult.Failure,
+                    JobHistoryId = config.JobHistoryId,
+                    FailureMessage = $"Inventory retrieved {inventoryItems.Count} certificate(s) but failed to submit to Command: {ExceptionHandler.FlattenException(ex)}"
+                };
             }
+        }
+
+        private string ConvertPemToBase64Der(string pem)
+        {
+            _logger.MethodEntry(LogLevel.Debug);
+
+            string stripped = pem
+                .Replace("-----BEGIN CERTIFICATE-----", string.Empty)
+                .Replace("-----END CERTIFICATE-----", string.Empty)
+                .Replace("\r", string.Empty)
+                .Replace("\n", string.Empty)
+                .Trim();
+
+            byte[] derBytes = Convert.FromBase64String(stripped);
+
+            _logger.MethodExit(LogLevel.Debug);
+
+            return Convert.ToBase64String(derBytes);
         }
     }
 }
