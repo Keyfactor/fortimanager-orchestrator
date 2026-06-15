@@ -1,10 +1,10 @@
 <h1 align="center" style="border-bottom: none">
-    Integration Template Universal Orchestrator Extension
+    tiManager Universal Orchestrator Extension
 </h1>
 
 <p align="center">
   <!-- Badges -->
-<img src="https://img.shields.io/badge/integration_status-prototype-3D1973?style=flat-square" alt="Integration Status: prototype" />
+<img src="https://img.shields.io/badge/integration_status-release-3D1973?style=flat-square" alt="Integration Status: release" />
 <a href="https://github.com/Keyfactor/fortimanager-orchestrator/releases"><img src="https://img.shields.io/github/v/release/Keyfactor/fortimanager-orchestrator?style=flat-square" alt="Release" /></a>
 <img src="https://img.shields.io/github/issues/Keyfactor/fortimanager-orchestrator?style=flat-square" alt="Issues" />
 <img src="https://img.shields.io/github/downloads/Keyfactor/fortimanager-orchestrator/total?style=flat-square&label=downloads&color=28B905" alt="GitHub Downloads (all assets, all releases)" />
@@ -55,17 +55,17 @@ This integration is compatible with Keyfactor Universal Orchestrator version 10.
 
 ## Support
 
-The Integration Template Universal Orchestrator extension is supported by Keyfactor. If you require support for any issues or have feature request, please open a support ticket by either contacting your Keyfactor representative or via the Keyfactor Support Portal at https://support.keyfactor.com.
+The tiManager Universal Orchestrator extension is supported by Keyfactor. If you require support for any issues or have feature request, please open a support ticket by either contacting your Keyfactor representative or via the Keyfactor Support Portal at https://support.keyfactor.com.
 
 > If you want to contribute bug fixes or additional enhancements, use the **[Pull requests](../../pulls)** tab.
 
 ## Requirements & Prerequisites
 
-Before installing the Integration Template Universal Orchestrator extension, we recommend that you install [kfutil](https://github.com/Keyfactor/kfutil). Kfutil is a command-line tool that simplifies the process of creating store types, installing extensions, and instantiating certificate stores in Keyfactor Command.
+Before installing the tiManager Universal Orchestrator extension, we recommend that you install [kfutil](https://github.com/Keyfactor/kfutil). Kfutil is a command-line tool that simplifies the process of creating store types, installing extensions, and instantiating certificate stores in Keyfactor Command.
 
 ## FortiManager Certificate Store Type
 
-To use the Integration Template Universal Orchestrator extension, you **must** create the FortiManager Certificate Store Type. This only needs to happen _once_ per Keyfactor Command instance.
+To use the tiManager Universal Orchestrator extension, you **must** create the FortiManager Certificate Store Type. This only needs to happen _once_ per Keyfactor Command instance.
 
 
 
@@ -193,9 +193,9 @@ the Keyfactor Command Portal
 
 ## Installation
 
-1. **Download the latest Integration Template Universal Orchestrator extension from GitHub.**
+1. **Download the latest tiManager Universal Orchestrator extension from GitHub.**
 
-    Navigate to the [Integration Template Universal Orchestrator extension GitHub version page](https://github.com/Keyfactor/fortimanager-orchestrator/releases/latest). Refer to the compatibility matrix below to determine which asset should be downloaded. Then, click the corresponding asset to download the zip archive.
+    Navigate to the [tiManager Universal Orchestrator extension GitHub version page](https://github.com/Keyfactor/fortimanager-orchestrator/releases/latest). Refer to the compatibility matrix below to determine which asset should be downloaded. Then, click the corresponding asset to download the zip archive.
 
    | Universal Orchestrator Version | Latest .NET version installed on the Universal Orchestrator server | `rollForward` condition in `Orchestrator.runtimeconfig.json` | `fortimanager-orchestrator` .NET version to download |
    | --------- | ----------- | ----------- | ----------- |
@@ -211,7 +211,7 @@ the Keyfactor Command Portal
     * **Default on Windows** - `C:\Program Files\Keyfactor\Keyfactor Orchestrator\extensions`
     * **Default on Linux** - `/opt/keyfactor/orchestrator/extensions`
 
-3. **Create a new directory for the Integration Template Universal Orchestrator extension inside the extensions directory.**
+3. **Create a new directory for the tiManager Universal Orchestrator extension inside the extensions directory.**
 
     Create a new directory called `fortimanager-orchestrator`.
     > The directory name does not need to match any names used elsewhere; it just has to be unique within the extensions directory.
@@ -224,7 +224,7 @@ the Keyfactor Command Portal
 
 6. **(optional) PAM Integration**
 
-    The Integration Template Universal Orchestrator extension is compatible with all supported Keyfactor PAM extensions to resolve PAM-eligible secrets. PAM extensions running on Universal Orchestrators enable secure retrieval of secrets from a connected PAM provider.
+    The tiManager Universal Orchestrator extension is compatible with all supported Keyfactor PAM extensions to resolve PAM-eligible secrets. PAM extensions running on Universal Orchestrators enable secure retrieval of secrets from a connected PAM provider.
 
     To configure a PAM provider, [reference the Keyfactor Integration Catalog](https://keyfactor.github.io/integrations-catalog/content/pam) to select an extension and follow the associated instructions to install it on the Universal Orchestrator (remote).
 
