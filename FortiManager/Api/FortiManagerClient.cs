@@ -335,7 +335,9 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager.Api
                 int? numberOfErrors = response.Result[0].Data?.GetProperty("num_err").GetInt32();
 
                 if (numberOfErrors > 0)
-                    throw new ApplicationException($"Error syncing to Fortigate device - {JsonSerializer.Serialize(response.Result[0].Data, new JsonSerializerOptions { WriteIndented = true })}");
+                    throw new ApplicationException($"Potential error syncing to Fortigate device.  The certificate may or may not have been successfully " +
+                        $" installed.  Please check the results below as well as the Fortigate device being managed to confirm " +
+                        $" installation was completed successfully - {JsonSerializer.Serialize(response.Result[0].Data, new JsonSerializerOptions { WriteIndented = true })}");
 
                 _logger.LogDebug($"Task status check try number {numTries.ToString()}.  Percent complete: {percent.ToString()}");
 
