@@ -112,7 +112,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             {
                 Result = hasWarning ? OrchestratorJobStatusJobResult.Warning : OrchestratorJobStatusJobResult.Success,
                 FailureMessage = hasWarning ? $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but there may have been an issue syncing to the Fortigate device {fortigateVdom}. Please check logs for details." : null,
-                JobHistoryId = config.JobHistoryId
+                JobHistoryId = config.JobHistoryId 
             };
         }
 
