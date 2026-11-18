@@ -85,7 +85,7 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
                     {
                         hasWarning = true;
                         string error = ExceptionHandler.FlattenException(ex);
-                        _logger.LogError(ex, $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but there was an error syncing Fortigate device {fortigateVdom} - {error}");
+                        _logger.LogError(ex, $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but there may be an issue syncing Fortigate device {fortigateVdom} - {error}");
                     }
                 }
             }
@@ -111,8 +111,8 @@ namespace Keyfactor.Extensions.Orchestrator.FortiManager
             return new JobResult
             {
                 Result = hasWarning ? OrchestratorJobStatusJobResult.Warning : OrchestratorJobStatusJobResult.Success,
-                FailureMessage = hasWarning ? $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but there was an error syncing Fortigate device {fortigateVdom}. Please check logs for details." : null,
-                JobHistoryId = config.JobHistoryId
+                FailureMessage = hasWarning ? $"Certificate {config.JobCertificate.Alias} successfully added, updated or removed, but there may have been an issue syncing to the Fortigate device {fortigateVdom}. Please check logs for details." : null,
+                JobHistoryId = config.JobHistoryId 
             };
         }
 
